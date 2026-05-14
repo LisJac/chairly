@@ -1,4 +1,4 @@
-import type { Meeting, Todo } from "./types"
+import type { Meeting, Todo, Project } from "./types"
 
 export const MOCK_MEETINGS: Meeting[] = [
   {
@@ -79,4 +79,54 @@ export const MOCK_TODOS: Todo[] = [
   { id: 4, text: "Review last week's meeting notes", done: true, meetingId: 3, meetingTitle: "Weekly Team Sync" },
   { id: 5, text: "Transcribe interview recordings", done: false, meetingId: 4, meetingTitle: "UX Research Review" },
   { id: 6, text: "Send Zoom link for weekly sync", done: true, meetingId: 3, meetingTitle: "Weekly Team Sync" },
+]
+
+export const MOCK_PROJECTS: Project[] = [
+  {
+    id: "chairly",
+    name: "Chairly Product",
+    emoji: "🚀",
+    description: "Product development & roadmap",
+    files: [
+      { id: 1, name: "Q2 2026 Review – Minutes",     type: "protocol", date: "2026-04-30", author: "Lisa Jacob",   meetingId: 1, meetingTitle: "Q2 2026 Quarterly Review" },
+      { id: 2, name: "Roadmap Workshop – Minutes",   type: "protocol", date: "2026-05-06", author: "Max Köhler",   meetingId: 2, meetingTitle: "Product Roadmap Workshop" },
+      { id: 3, name: "Q2 Metrics Deck.pdf",          type: "pdf",      date: "2026-04-29", author: "Lisa Jacob",   meetingId: 1 },
+      { id: 4, name: "Feature backlog Q3.xlsx",      type: "sheet",    date: "2026-05-07", author: "Max Köhler" },
+      { id: 5, name: "Product vision.doc",           type: "doc",      date: "2026-04-15", author: "Lisa Jacob" },
+    ],
+  },
+  {
+    id: "ux-research",
+    name: "UX Research",
+    emoji: "🎨",
+    description: "User interviews & insights",
+    files: [
+      { id: 10, name: "UX Research Review – Minutes", type: "protocol", date: "2026-05-12", author: "Anna Müller", meetingId: 4, meetingTitle: "UX Research Review" },
+      { id: 11, name: "Interview transcripts.pdf",   type: "pdf",      date: "2026-05-10", author: "Anna Müller" },
+      { id: 12, name: "User journey map.png",        type: "image",    date: "2026-05-08", author: "Sara Fischer" },
+      { id: 13, name: "Insights board (Figma)",      type: "link",     date: "2026-05-11", author: "Sara Fischer" },
+    ],
+  },
+  {
+    id: "team-ops",
+    name: "Team Operations",
+    emoji: "⚙️",
+    description: "Weekly syncs & team docs",
+    files: [
+      { id: 20, name: "Weekly Sync – May 4 Minutes",  type: "protocol", date: "2026-05-04", author: "Sara Fischer", meetingId: 3, meetingTitle: "Weekly Team Sync" },
+      { id: 21, name: "Weekly Sync – Apr 27 Minutes", type: "protocol", date: "2026-04-27", author: "Sara Fischer" },
+      { id: 22, name: "Team handbook.doc",            type: "doc",      date: "2026-03-10", author: "Lisa Jacob" },
+      { id: 23, name: "Onboarding checklist.doc",     type: "doc",      date: "2026-02-20", author: "Tom Becker" },
+    ],
+  },
+  {
+    id: "general",
+    name: "General",
+    emoji: "📋",
+    description: "Misc files & notes",
+    files: [
+      { id: 30, name: "Office floor plan.png",        type: "image",    date: "2026-01-15", author: "Tom Becker" },
+      { id: 31, name: "Company values.doc",           type: "doc",      date: "2025-11-02", author: "Lisa Jacob" },
+    ],
+  },
 ]

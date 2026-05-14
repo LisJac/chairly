@@ -14,14 +14,14 @@ import type { AgendaType, AgendaItem, Meeting } from "./types"
 const CURRENT_USER = "Lisa Jacob"
 
 const TYPES: Record<AgendaType, { label: string; color: string }> = {
-  information:  { label: "Information", color: "bg-blue-100 text-blue-700" },
-  entscheidung: { label: "Decision",    color: "bg-amber-100 text-amber-700" },
-  brainstorm:   { label: "Brainstorm",  color: "bg-emerald-100 text-emerald-700" },
-  beratung:     { label: "Advisory",    color: "bg-purple-100 text-purple-700" },
-  kreativ:      { label: "Creative",    color: "bg-orange-100 text-orange-700" },
-  ankommen:     { label: "Check-in",    color: "bg-sky-100 text-sky-700" },
-  checkout:     { label: "Check-out",   color: "bg-teal-100 text-teal-700" },
-  sonstige:     { label: "Other",       color: "bg-gray-100 text-gray-600" },
+  information:  { label: "Information", color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  entscheidung: { label: "Decision",    color: "bg-[var(--accent-soft)] text-[var(--text-on-soft)]" },
+  brainstorm:   { label: "Brainstorm",  color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
+  beratung:     { label: "Advisory",    color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
+  kreativ:      { label: "Creative",    color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
+  ankommen:     { label: "Check-in",    color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  checkout:     { label: "Check-out",   color: "bg-[var(--bg-surface)] text-[var(--text-secondary)]" },
+  sonstige:     { label: "Other",       color: "bg-[var(--bg-muted)] text-[var(--text-tertiary)]" },
 }
 
 const TEAM_MEMBERS = [
@@ -59,11 +59,13 @@ export default function MeetingDetail({
   onBack,
   onSave,
   onDelete,
+  onStart,
 }: {
   meeting: Meeting
   onBack: () => void
   onSave: (updated: Meeting) => void
   onDelete: (id: number) => void
+  onStart?: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -168,23 +170,33 @@ export default function MeetingDetail({
   if (!editing) {
     return (
       <div className="min-h-screen bg-muted/40">
-        <header className="sticky top-0 z-50 bg-[#1C1F3A] text-white h-14 flex items-center px-8 gap-3 shadow-md">
-          <button onClick={onBack} className="text-white/50 hover:text-white text-sm flex items-center gap-1.5 transition-colors">
+        <header className="sticky top-0 z-50 bg-[var(--text-primary)] text-[var(--text-on-accent)] h-14 flex items-center px-8 gap-3 shadow-md">
+          <button onClick={onBack} className="text-[var(--text-on-accent)]/50 hover:text-[var(--text-on-accent)] text-sm flex items-center gap-1.5 transition-colors">
             ← Dashboard
           </button>
           <span className="text-xl font-extrabold tracking-tight ml-3">
-            Chair<span className="text-teal-400">ly</span>
+            Chair<span className="text-[var(--accent)]">ly</span>
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             {isOwner && (
               <Button
                 onClick={() => setEditing(true)}
-                className="bg-teal-700 hover:bg-teal-600 text-white h-8 text-sm gap-1.5"
+                variant="outline"
+                className="h-8 text-sm gap-1.5"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z" />
                 </svg>
                 Edit
+              </Button>
+            )}
+            {isOwner && onStart && !meeting.isDraft && (
+              <Button
+                onClick={onStart}
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm gap-1.5"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-on-accent)] animate-pulse" />
+                Start meeting
               </Button>
             )}
           </div>
@@ -194,13 +206,13 @@ export default function MeetingDetail({
 
           {/* Hero */}
           <div>
-            <h1 className="text-2xl font-bold text-[#1C1F3A] leading-tight">{meeting.title}</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] leading-tight">{meeting.title}</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {formatDate(meeting.date)} · {meeting.startTime} – {meeting.endTime}
             </p>
             <div className="flex flex-wrap items-center gap-2.5 mt-3">
-              <div className="flex items-center gap-2 bg-white border rounded-full px-3 py-1 shadow-sm">
-                <div className="w-5 h-5 rounded-full bg-teal-700 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-2 bg-[var(--bg-card)] border rounded-full px-3 py-1 shadow-sm">
+                <div className="w-5 h-5 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-[9px] font-bold flex items-center justify-center shrink-0">
                   {ownerInitials}
                 </div>
                 <span className="text-xs font-medium">{meeting.owner}</span>
@@ -214,7 +226,7 @@ export default function MeetingDetail({
               {meeting.link && (
                 <a
                   href={meeting.link} target="_blank" rel="noreferrer"
-                  className="ml-auto text-xs text-teal-700 hover:text-violet-800 hover:underline flex items-center gap-1 transition-colors"
+                  className="ml-auto text-xs text-[var(--accent)] hover:text-[var(--accent-pressed)] hover:underline flex items-center gap-1 transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.1m4.444-4.444l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -259,7 +271,7 @@ export default function MeetingDetail({
                 <div className="divide-y">
                   {meeting.agenda.map((item, idx) => (
                     <div key={item.id} className="flex items-center gap-3 py-3">
-                      <span className="text-teal-700 font-bold text-sm w-5 shrink-0 text-right">{idx + 1}.</span>
+                      <span className="text-[var(--accent)] font-bold text-sm w-5 shrink-0 text-right">{idx + 1}.</span>
                       <span className="flex-1 text-sm">{item.topic || <span className="text-muted-foreground italic">(no title)</span>}</span>
                       <Badge variant="outline" className={`text-[10px] shrink-0 border-0 font-medium ${TYPES[item.type].color}`}>
                         {TYPES[item.type].label}
@@ -293,7 +305,7 @@ export default function MeetingDetail({
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {meeting.participants.map((p, i) => (
-                    <Badge key={i} variant="secondary" className="text-teal-800 bg-teal-100 font-normal">{p}</Badge>
+                    <Badge key={i} variant="secondary" className="text-[var(--text-on-soft)] bg-[var(--accent-soft)] font-normal">{p}</Badge>
                   ))}
                 </div>
               )}
@@ -315,25 +327,25 @@ export default function MeetingDetail({
   // ════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="sticky top-0 z-50 bg-[#1C1F3A] text-white h-14 flex items-center px-8 gap-3 shadow-md">
-        <button onClick={onBack} className="text-white/50 hover:text-white text-sm flex items-center gap-1.5 transition-colors">
+      <header className="sticky top-0 z-50 bg-[var(--text-primary)] text-[var(--text-on-accent)] h-14 flex items-center px-8 gap-3 shadow-md">
+        <button onClick={onBack} className="text-[var(--text-on-accent)]/50 hover:text-[var(--text-on-accent)] text-sm flex items-center gap-1.5 transition-colors">
           ← Dashboard
         </button>
         <span className="text-xl font-extrabold tracking-tight ml-3">
-          Chair<span className="text-teal-400">ly</span>
+          Chair<span className="text-[var(--accent)]">ly</span>
         </span>
-        <span className="text-white/40 text-sm ml-1">— Edit meeting</span>
+        <span className="text-[var(--text-on-accent)]/40 text-sm ml-1">— Edit meeting</span>
         <div className="ml-auto flex items-center gap-2">
           <Button
             variant="ghost"
             onClick={handleCancel}
-            className="h-8 text-sm text-white/70 hover:text-white hover:bg-white/10"
+            className="h-8 text-sm text-[var(--text-on-accent)]/70 hover:text-[var(--text-on-accent)] hover:bg-[var(--bg-card)]/10"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
-            className="bg-teal-700 hover:bg-teal-600 text-white h-8 text-sm"
+            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm"
           >
             Save changes
           </Button>
@@ -387,8 +399,8 @@ export default function MeetingDetail({
                 onDragOver={e => e.preventDefault()}
                 className={`grid grid-cols-[20px_24px_1fr_150px_1fr_72px_28px] gap-2 items-center border rounded-lg p-2 transition-all ${
                   draggingId === item.id
-                    ? "opacity-40 bg-teal-50 border-teal-300"
-                    : "bg-muted/50 hover:border-teal-300"
+                    ? "opacity-40 bg-[var(--accent-soft)] border-[var(--accent-soft-border)]"
+                    : "bg-muted/50 hover:border-[var(--accent-soft-border)]"
                 }`}
               >
                 <span className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground flex items-center justify-center select-none">⠿</span>
@@ -476,7 +488,7 @@ export default function MeetingDetail({
               onClick={() => document.getElementById("e-tagInput")?.focus()}
             >
               {participants.map((p, i) => (
-                <Badge key={i} variant="secondary" className="gap-1 pr-1 text-teal-800 bg-teal-100">
+                <Badge key={i} variant="secondary" className="gap-1 pr-1 text-[var(--text-on-soft)] bg-[var(--accent-soft)]">
                   {p}
                   <button
                     type="button" className="ml-0.5 opacity-60 hover:opacity-100"
@@ -512,7 +524,7 @@ export default function MeetingDetail({
                 {TEAM_MEMBERS.map(m => (
                   <SelectItem key={m.id} value={m.id}>
                     <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-teal-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-[10px] font-bold flex items-center justify-center shrink-0">
                         {m.initials}
                       </div>
                       <span>{m.name}</span>
@@ -523,7 +535,7 @@ export default function MeetingDetail({
               </SelectContent>
             </Select>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
-              <div className="w-9 h-9 rounded-full bg-teal-700 text-white flex items-center justify-center text-sm font-bold shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] flex items-center justify-center text-sm font-bold shrink-0">
                 {selectedOwner.initials}
               </div>
               <div>
@@ -561,7 +573,7 @@ export default function MeetingDetail({
           )}
           <div className="ml-auto flex gap-3">
             <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-            <Button onClick={handleSave} className="bg-[#1C1F3A] hover:bg-[#2D3260]">
+            <Button onClick={handleSave} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)]">
               Save changes
             </Button>
           </div>

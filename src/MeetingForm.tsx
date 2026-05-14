@@ -9,22 +9,41 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
-import type { AgendaType, AgendaItem, Meeting } from "./types"
+import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
+
+// Available capture templates per agenda type (suggested)
+const TEMPLATES: { id: TemplateId; name: string; icon: string }[] = [
+  { id: "none",       name: "No template",     icon: "—" },
+  { id: "decision",   name: "Decision",        icon: "✅" },
+  { id: "actions",    name: "Action items",    icon: "📌" },
+  { id: "brainstorm", name: "Brainstorm",      icon: "💡" },
+  { id: "status",     name: "Status update",   icon: "📊" },
+  { id: "notes",      name: "Free notes",      icon: "📝" },
+]
+
+const SUGGESTED_TEMPLATE: Record<AgendaType, TemplateId> = {
+  information:  "notes",
+  entscheidung: "decision",
+  brainstorm:   "brainstorm",
+  beratung:     "notes",
+  kreativ:      "brainstorm",
+  ankommen:     "none",
+  checkout:     "none",
+  sonstige:     "notes",
+}
 
 const TYPES: Record<AgendaType, { label: string; color: string }> = {
-  information:  { label: "Information",    color: "bg-blue-100 text-blue-700" },
-  entscheidung: { label: "Decision",       color: "bg-amber-100 text-amber-700" },
-  brainstorm:   { label: "Brainstorm",     color: "bg-emerald-100 text-emerald-700" },
-  beratung:     { label: "Advisory",       color: "bg-purple-100 text-purple-700" },
-  kreativ:      { label: "Creative",       color: "bg-orange-100 text-orange-700" },
-  ankommen:     { label: "Check-in",       color: "bg-sky-100 text-sky-700" },
-  checkout:     { label: "Check-out",      color: "bg-teal-100 text-teal-700" },
-  sonstige:     { label: "Other",          color: "bg-gray-100 text-gray-600" },
+  information:  { label: "Information",    color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  entscheidung: { label: "Decision",       color: "bg-[var(--accent-soft)] text-[var(--text-on-soft)]" },
+  brainstorm:   { label: "Brainstorm",     color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
+  beratung:     { label: "Advisory",       color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
+  kreativ:      { label: "Creative",       color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
+  ankommen:     { label: "Check-in",       color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  checkout:     { label: "Check-out",      color: "bg-[var(--bg-surface)] text-[var(--text-secondary)]" },
+  sonstige:     { label: "Other",          color: "bg-[var(--bg-muted)] text-[var(--text-tertiary)]" },
 }
 
 const BUFFER = 10
-const WINDOW = 60
 let idCounter = 3
 
 const TEAM_MEMBERS = [
@@ -69,28 +88,40 @@ function calcEndTime(start: string, totalMin: number): string {
   return `${String(Math.floor(end / 60) % 24).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`
 }
 
-export default function MeetingForm({ onBack, onSave }: { onBack: () => void; onSave: (meeting: Meeting) => void }) {
-  const [meetingName, setMeetingName] = useState("")
-  const [intention, setIntention] = useState("")
-  const [desiredOutcome, setDesiredOutcome] = useState("")
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
-  const [startTime, setStartTime] = useState("09:00")
-  const [link, setLink] = useState("")
+export default function MeetingForm({
+  onBack,
+  onSave,
+  onSaveDraft,
+  draft,
+}: {
+  onBack: () => void
+  onSave: (meeting: Meeting) => void
+  onSaveDraft: (meeting: Meeting) => void
+  draft?: Meeting
+}) {
+  const ownerIdFromName = (name?: string) => TEAM_MEMBERS.find(m => m.name === name)?.id ?? "lj"
+
+  const [meetingName, setMeetingName] = useState(draft?.title ?? "")
+  const [intention, setIntention] = useState(draft?.intention ?? "")
+  const [desiredOutcome, setDesiredOutcome] = useState(draft?.desiredOutcome ?? "")
+  const [date, setDate] = useState(draft?.date ?? new Date().toISOString().slice(0, 10))
+  const [startTime, setStartTime] = useState(draft?.startTime ?? "09:00")
+  const [link, setLink] = useState(draft?.link ?? "")
   const [personalMsg, setPersonalMsg] = useState("")
-  const [owner, setOwner] = useState("lj")
-  const [participants, setParticipants] = useState<string[]>([])
+  const [owner, setOwner] = useState(ownerIdFromName(draft?.owner))
+  const [participants, setParticipants] = useState<string[]>(draft?.participants ?? [])
   const [tagInput, setTagInput] = useState("")
-  const [toast, setToast] = useState("")
-  const [agenda, setAgenda] = useState<AgendaItem[]>([
-    { id: 1, topic: "Opening & Warm-up", type: "information", outcome: "", duration: "5", note: "" },
-    { id: 2, topic: "Main Topic", type: "entscheidung", outcome: "", duration: "20", note: "" },
-    { id: 3, topic: "Next Steps & Wrap-up", type: "beratung", outcome: "", duration: "10", note: "" },
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false)
+  const [previewForItemId, setPreviewForItemId] = useState<number | null>(null)
+  const [showValidation, setShowValidation] = useState(false)
+  const [agenda, setAgenda] = useState<AgendaItem[]>(draft?.agenda ?? [
+    { id: 1, topic: "Opening & Warm-up",    type: "information",  template: "notes",    outcome: "", duration: "", note: "" },
+    { id: 2, topic: "Main Topic",            type: "entscheidung", template: "decision", outcome: "", duration: "", note: "" },
+    { id: 3, topic: "Next Steps & Wrap-up",  type: "beratung",     template: "actions",  outcome: "", duration: "", note: "" },
   ])
 
   const agendaMin = agenda.reduce((s, i) => s + (parseInt(i.duration) || 0), 0)
   const totalMin = agendaMin + BUFFER
-  const progress = Math.min((totalMin / WINDOW) * 100, 100)
-  const isOver = totalMin > WINDOW
   const endTime = calcEndTime(startTime, totalMin)
 
   const dragItem = useRef<number | null>(null)
@@ -114,10 +145,16 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
   }
 
   const addRow = () =>
-    setAgenda(a => [...a, { id: ++idCounter, topic: "", type: "information", outcome: "", duration: "", note: "" }])
+    setAgenda(a => [...a, { id: ++idCounter, topic: "", type: "information", template: "notes", outcome: "", duration: "", note: "" }])
 
   const updateRow = useCallback(<K extends keyof AgendaItem>(id: number, key: K, val: AgendaItem[K]) => {
-    setAgenda(a => a.map(r => r.id === id ? { ...r, [key]: val } : r))
+    setAgenda(a => a.map(r => {
+      if (r.id !== id) return r
+      const next = { ...r, [key]: val }
+      // When type changes, auto-suggest the matching template (only if user hasn't changed it before)
+      if (key === "type") next.template = SUGGESTED_TEMPLATE[val as AgendaType]
+      return next
+    }))
   }, [])
 
   const removeRow = (id: number) => setAgenda(a => a.filter(r => r.id !== id))
@@ -134,26 +171,51 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
       setParticipants(p => p.slice(0, -1))
   }
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000) }
-
   const dateDisplay = date ? date.split("-").reverse().join(".") : "—"
   const selectedOwner = TEAM_MEMBERS.find(m => m.id === owner)!
 
+  const hasContent = meetingName.trim() !== "" || intention.trim() !== "" || desiredOutcome.trim() !== ""
+    || participants.length > 0 || link.trim() !== ""
+
+  const isInvalidDuration = (d: string) => !d.trim() || parseInt(d) <= 0
+  const invalidItems = agenda.filter(a => isInvalidDuration(a.duration))
+
+  const buildMeeting = (): Meeting => ({
+    id: draft?.id ?? Date.now(),
+    title: meetingName || "Untitled meeting",
+    date,
+    startTime,
+    endTime,
+    owner: selectedOwner.name,
+    participants,
+    intention,
+    desiredOutcome,
+    ...(link ? { link } : {}),
+    agenda,
+  })
+
+  const handleBack = () => {
+    if (hasContent) setShowDraftPrompt(true)
+    else onBack()
+  }
+
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="sticky top-0 z-50 bg-[#1C1F3A] text-white h-14 flex items-center px-8 gap-3 shadow-md">
-        <button onClick={onBack} className="text-white/50 hover:text-white text-sm flex items-center gap-1.5 transition-colors">
-          ← Dashboard
-        </button>
-        <span className="text-xl font-extrabold tracking-tight ml-3">
-          Chair<span className="text-teal-400">ly</span>
-        </span>
-        <span className="text-white/40 text-sm ml-1">— Create new meeting</span>
-      </header>
+      {/* Top bar with back arrow */}
+      <div className="sticky top-0 z-20 bg-[var(--bg-canvas)]/95 backdrop-blur border-b">
+        <div className="max-w-3xl mx-auto px-6 py-3">
+          <button
+            onClick={handleBack}
+            className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1.5 transition-colors"
+          >
+            ← Dashboard
+          </button>
+        </div>
+      </div>
 
-      <div className="max-w-3xl mx-auto py-10 px-4 space-y-5">
+      <div className="max-w-3xl mx-auto pt-8 pb-12 px-6 space-y-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#1C1F3A]">Schedule a new meeting</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Schedule a new meeting</h1>
           <p className="text-sm text-muted-foreground mt-1">
             The more thoroughly you prepare your meeting, the easier it will be to run. Even if it feels like extra work upfront, you'll find during the meeting that you can facilitate better and achieve a stronger outcome.
           </p>
@@ -195,10 +257,6 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
             <CardDescription>Meeting duration is automatically calculated from the agenda</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-[20px_24px_1fr_150px_1fr_72px_28px] gap-2 px-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              <span /><span>#</span><span>Topic</span><span>Type</span><span>Outcome</span><span>Min</span><span />
-            </div>
-
             {agenda.map((item, idx) => (
               <div
                 key={item.id}
@@ -207,24 +265,113 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
                 onDragEnter={() => handleDragEnter(item.id)}
                 onDragEnd={handleDragEnd}
                 onDragOver={e => e.preventDefault()}
-                className={`grid grid-cols-[20px_24px_1fr_150px_1fr_72px_28px] gap-2 items-center border rounded-lg p-2 transition-all ${
-                  draggingId === item.id ? "opacity-40 bg-teal-50 border-teal-300" : "bg-muted/50 hover:border-teal-300"
+                className={`border rounded-lg p-4 transition-all ${
+                  draggingId === item.id
+                    ? "opacity-40 bg-[var(--accent-soft)] border-[var(--accent-soft-border)]"
+                    : "bg-muted/40 hover:border-[var(--accent-soft-border)]"
                 }`}
               >
-                <span className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground flex items-center justify-center select-none">⠿</span>
-                <span className="text-xs font-bold text-muted-foreground text-center">{idx + 1}</span>
-                <Input className="h-8 text-sm" placeholder="Topic…" value={item.topic} onChange={e => updateRow(item.id, "topic", e.target.value)} />
-                <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
-                  <SelectTrigger className="h-8 text-xs w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(TYPES) as AgendaType[]).map(t => (
-                      <SelectItem key={t} value={t} className="text-xs">{TYPES[t].label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input className="h-8 text-sm" placeholder="Expected outcome…" value={item.outcome} onChange={e => updateRow(item.id, "outcome", e.target.value)} />
-                <Input className="h-8 text-sm text-center" type="number" min={1} max={180} placeholder="min" value={item.duration} onChange={e => updateRow(item.id, "duration", e.target.value)} />
-                <button type="button" onClick={() => removeRow(item.id)} className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors text-lg leading-none">×</button>
+                {/* Header row: drag handle + big number + delete */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="cursor-grab active:cursor-grabbing text-[var(--text-tertiary)] hover:text-[var(--text-primary)] select-none text-2xl leading-none transition-colors"
+                      title="Drag to reorder"
+                    >⠿</span>
+                    <span className="text-2xl font-medium text-[var(--text-primary)] leading-none">{idx + 1}.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeRow(item.id)}
+                    className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors text-lg leading-none"
+                    title="Remove agenda item"
+                  >×</button>
+                </div>
+
+                {/* 3 labeled lines */}
+                <div className="space-y-3">
+                  {/* Line 1: Topic (full width) */}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Topic</Label>
+                    <Input
+                      className="h-9 text-sm"
+                      placeholder="What will be discussed?"
+                      value={item.topic}
+                      onChange={e => updateRow(item.id, "topic", e.target.value)}
+                    />
+                  </div>
+
+                  {/* Line 2: Type (50%) + Template (50%) — full width */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Type</Label>
+                      <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
+                        <SelectTrigger className="h-10 text-sm w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {(Object.keys(TYPES) as AgendaType[]).map(t => (
+                            <SelectItem key={t} value={t} className="text-sm">{TYPES[t].label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Template</Label>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewForItemId(item.id)}
+                          className="text-[10px] font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          Templates preview
+                        </button>
+                      </div>
+                      <Select value={item.template ?? "none"} onValueChange={v => updateRow(item.id, "template", v as TemplateId)}>
+                        <SelectTrigger className="h-10 text-sm w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {TEMPLATES.map(t => (
+                            <SelectItem key={t.id} value={t.id} className="text-sm">
+                              <span className="mr-1.5">{t.icon}</span>{t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Line 3: Outcome + Duration */}
+                  <div className="grid grid-cols-[1fr_120px] gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Expected outcome</Label>
+                      <Input
+                        className="h-9 text-sm"
+                        placeholder="What should be achieved?"
+                        value={item.outcome}
+                        onChange={e => updateRow(item.id, "outcome", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Duration</Label>
+                      <div className={`flex items-center gap-1 border rounded-md px-2 bg-background h-9 focus-within:ring-2 focus-within:ring-ring ${
+                        showValidation && isInvalidDuration(item.duration) ? "border-destructive ring-2 ring-destructive/20" : ""
+                      }`}>
+                        <Input
+                          className="h-8 text-sm text-right border-0 shadow-none focus-visible:ring-0 p-0 min-w-0"
+                          type="number" min={1} max={180} placeholder="0"
+                          value={item.duration}
+                          onChange={e => updateRow(item.id, "duration", e.target.value)}
+                        />
+                        <span className="text-xs text-muted-foreground shrink-0">min</span>
+                      </div>
+                      {showValidation && isInvalidDuration(item.duration) && (
+                        <p className="text-[11px] text-destructive font-medium mt-1">Estimate the time</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
 
@@ -234,31 +381,24 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
 
             <Separator />
 
+            {/* Yellow buffer hint — moved ABOVE time planning */}
+            <div className="text-xs text-[var(--status-warning)] bg-[var(--status-warning-soft)] border border-[var(--status-warning)]/30 rounded-md px-3 py-2 font-medium">
+              ⏱ A 10-minute buffer is automatically added. If you finish on time, use those 10 minutes to chat and connect.
+            </div>
+
             <div className="space-y-2">
-              <div className="flex justify-between text-sm font-semibold">
+              <div className="flex justify-between items-baseline text-sm font-semibold">
                 <span>Time planning</span>
-                <span className={isOver ? "text-destructive" : ""}>{totalMin} / {WINDOW} min</span>
+                <span className="text-[var(--text-primary)]">{totalMin} min total</span>
               </div>
-              <Progress value={progress} className={isOver ? "[&>div]:bg-destructive" : ""} />
               <div className="flex gap-4 text-xs text-muted-foreground">
                 <span>Agenda: <strong className="text-foreground">{agendaMin} min</strong></span>
                 <span>Buffer: <strong className="text-foreground">{BUFFER} min</strong></span>
-                <span>Total: <strong className="text-foreground">{totalMin} min</strong></span>
-                <span>Window: <strong className="text-foreground">{WINDOW} min</strong></span>
               </div>
-              <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 font-medium">
-                ⏱ A 10-minute buffer is automatically added. If you finish on time, use those 10 minutes to chat and connect.
-              </div>
-              {isOver && (
-                <div className="text-xs text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2 font-semibold">
-                  ⚠️ The agenda exceeds the meeting window — please prioritize
-                </div>
-              )}
             </div>
 
-            {isOver && (
+            {false && (
               <div className="space-y-2 pt-1">
-                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Set priorities</Label>
                 {agenda.map((item, idx) => (
                   <label key={item.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" defaultChecked className="accent-teal-700" />
@@ -327,13 +467,13 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                       allAdded
-                        ? "bg-teal-700 text-white border-teal-700"
-                        : "bg-white text-muted-foreground border-border hover:border-teal-400 hover:text-teal-800"
+                        ? "bg-[var(--accent)] text-[var(--text-on-accent)] border-[var(--accent)]"
+                        : "bg-[var(--bg-card)] text-muted-foreground border-border hover:border-[var(--accent)] hover:text-[var(--text-on-soft)]"
                     }`}
                   >
                     <span>{team.emoji}</span>
                     <span>{team.name}</span>
-                    <span className={`text-[10px] ${allAdded ? "text-white/70" : "text-muted-foreground/60"}`}>
+                    <span className={`text-[10px] ${allAdded ? "text-[var(--text-on-accent)]/70" : "text-muted-foreground/60"}`}>
                       {team.members.length}
                     </span>
                   </button>
@@ -347,7 +487,7 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
               onClick={() => document.getElementById("tagInput")?.focus()}
             >
               {participants.map((p, i) => (
-                <Badge key={i} variant="secondary" className="gap-1 pr-1 text-teal-800 bg-teal-100">
+                <Badge key={i} variant="secondary" className="gap-1 pr-1 text-[var(--text-on-soft)] bg-[var(--accent-soft)]">
                   {p}
                   <button type="button" className="ml-0.5 opacity-60 hover:opacity-100" onClick={e => { e.stopPropagation(); setParticipants(ps => ps.filter((_, j) => j !== i)) }}>×</button>
                 </Badge>
@@ -383,7 +523,7 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
                 {TEAM_MEMBERS.map(m => (
                   <SelectItem key={m.id} value={m.id}>
                     <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-teal-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{m.initials}</div>
+                      <div className="w-6 h-6 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-[10px] font-bold flex items-center justify-center shrink-0">{m.initials}</div>
                       <span>{m.name}</span>
                       <span className="text-muted-foreground text-xs">{m.email}</span>
                     </div>
@@ -392,7 +532,7 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
               </SelectContent>
             </Select>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
-              <div className="w-9 h-9 rounded-full bg-teal-700 text-white flex items-center justify-center text-sm font-bold shrink-0">{selectedOwner.initials}</div>
+              <div className="w-9 h-9 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] flex items-center justify-center text-sm font-bold shrink-0">{selectedOwner.initials}</div>
               <div>
                 <p className="font-semibold text-sm">{selectedOwner.name}</p>
                 <p className="text-xs text-muted-foreground">{selectedOwner.email}</p>
@@ -419,14 +559,14 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
             <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground block">Invitation Preview</Label>
 
             <div className="rounded-lg border overflow-hidden text-sm">
-              <div className="bg-[#1C1F3A] text-white px-5 py-3.5">
+              <div className="bg-[var(--text-primary)] text-[var(--text-on-accent)] px-5 py-3.5">
                 <p className="font-bold text-base">📅 {meetingName || "[Meeting Name]"}</p>
-                <p className="text-white/60 text-xs mt-0.5">
+                <p className="text-[var(--text-on-accent)]/60 text-xs mt-0.5">
                   {date && startTime ? `${dateDisplay}  ${startTime}${endTime ? " – " + endTime : ""}` : "Date & time to be set"}
                 </p>
               </div>
               <div className="bg-card px-5 py-4 space-y-3">
-                {personalMsg && <p className="italic text-muted-foreground text-xs border-l-2 border-teal-300 pl-3">"{personalMsg}"</p>}
+                {personalMsg && <p className="italic text-muted-foreground text-xs border-l-2 border-[var(--accent-soft-border)] pl-3">"{personalMsg}"</p>}
                 {[
                   { label: "Meeting Owner", value: selectedOwner.name },
                   { label: "Intention", value: intention || "—" },
@@ -445,7 +585,7 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
                     <ul className="divide-y">
                       {agenda.map((item, idx) => (
                         <li key={item.id} className="flex gap-2 py-1.5 text-xs items-center">
-                          <span className="text-teal-700 font-bold w-4">{idx + 1}.</span>
+                          <span className="text-[var(--accent)] font-bold w-4">{idx + 1}.</span>
                           <span className="flex-1">{item.topic || "(no title)"}</span>
                           <Badge variant="outline" className={`text-[10px] ${TYPES[item.type].color}`}>{TYPES[item.type].label}</Badge>
                           <span className="text-muted-foreground ml-1 shrink-0">{item.duration ? item.duration + " min" : "—"}</span>
@@ -461,43 +601,197 @@ export default function MeetingForm({ onBack, onSave }: { onBack: () => void; on
                 {link && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Link</p>
-                    <p className="font-medium text-teal-700 break-all">{link}</p>
+                    <p className="font-medium text-[var(--accent)] break-all">{link}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex gap-3 justify-end pt-1">
-              <Button variant="outline" type="button" onClick={() => showToast("💾 Draft saved")}>Save draft</Button>
-              <Button variant="secondary" type="button" onClick={() => showToast("✉️ Invitation sent!")}>Send invitation</Button>
-              <Button type="button" className="bg-[#1C1F3A] hover:bg-[#2D3260]" onClick={() => {
-                const newMeeting: Meeting = {
-                  id: Date.now(),
-                  title: meetingName || "New Meeting",
-                  date,
-                  startTime,
-                  endTime,
-                  owner: selectedOwner.name,
-                  participants,
-                  intention,
-                  desiredOutcome,
-                  ...(link ? { link } : {}),
-                  agenda,
-                }
-                onSave(newMeeting)
-              }}>
-                Create meeting
-              </Button>
+            {showValidation && invalidItems.length > 0 && (
+              <div className="text-xs text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2.5 font-medium flex items-start gap-2">
+                <span className="shrink-0">⚠️</span>
+                <span>
+                  {invalidItems.length} agenda item{invalidItems.length !== 1 ? "s" : ""} {invalidItems.length === 1 ? "has" : "have"} no duration. Please enter a time for each item before sending the meeting.
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <p className="text-xs text-muted-foreground italic">
+                ✉️ Creating the meeting will invite all participants.
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" type="button" onClick={() => onSaveDraft(buildMeeting())}>
+                  Save as draft
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)]"
+                  onClick={() => {
+                    if (invalidItems.length > 0) {
+                      setShowValidation(true)
+                      // Scroll to the first invalid item
+                      setTimeout(() => {
+                        const firstInvalid = document.querySelector('.border-destructive')
+                        firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" })
+                      }, 0)
+                      return
+                    }
+                    onSave(buildMeeting())
+                  }}
+                >
+                  Create meeting
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {toast && (
-        <div className="fixed bottom-6 right-6 bg-[#1C1F3A] text-white px-5 py-3.5 rounded-xl text-sm font-semibold shadow-xl z-50">
-          {toast}
         </div>
-      )}
+
+        {/* ── Save-as-draft prompt ── */}
+        {/* ── Template preview/picker ── */}
+        {previewForItemId !== null && (() => {
+          const targetItem = agenda.find(a => a.id === previewForItemId)
+          if (!targetItem) return null
+          const pick = (tplId: TemplateId) => {
+            updateRow(previewForItemId, "template", tplId)
+            setPreviewForItemId(null)
+          }
+          return (
+            <div className="fixed inset-0 z-50 bg-[var(--bg-overlay)] flex items-center justify-center p-6 overflow-y-auto">
+              <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
+                <div className="px-6 py-4 border-b sticky top-0 bg-[var(--bg-card)] flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-medium text-[var(--text-primary)]">Choose a template</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Templates help capture what happens in this agenda item.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setPreviewForItemId(null)}
+                    className="text-muted-foreground hover:text-[var(--text-primary)] text-lg leading-none px-2"
+                  >×</button>
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-6">
+                  {TEMPLATES.map(t => {
+                    const isSelected = (targetItem.template ?? "none") === t.id
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => pick(t.id)}
+                        className={`text-left border rounded-lg p-4 transition-all hover:border-[var(--accent)] hover:shadow-sm
+                          ${isSelected ? "border-[var(--accent)] bg-[var(--accent-soft)]/30 ring-2 ring-[var(--accent)]/20" : "border-border bg-[var(--bg-card)]"}`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">{t.icon}</span>
+                          <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
+                          {isSelected && <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Selected</span>}
+                        </div>
+                        {/* Preview content */}
+                        <div className="bg-[var(--bg-canvas)] border border-dashed border-border rounded-md p-3 space-y-1.5 text-xs">
+                          {t.id === "none" && (
+                            <p className="text-muted-foreground italic">No structured capture — facilitator notes during the meeting as they wish.</p>
+                          )}
+                          {t.id === "decision" && (
+                            <>
+                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Decision title</div>
+                              <div className="h-5 bg-[var(--bg-muted)] rounded" />
+                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Options considered</div>
+                              <div className="h-8 bg-[var(--bg-muted)] rounded" />
+                              <div className="flex gap-2 pt-1">
+                                <div className="flex-1">
+                                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Chosen</div>
+                                  <div className="h-5 bg-[var(--bg-muted)] rounded mt-0.5" />
+                                </div>
+                                <div className="w-20">
+                                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Owner</div>
+                                  <div className="h-5 bg-[var(--bg-muted)] rounded mt-0.5" />
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {t.id === "actions" && (
+                            <>
+                              {[1, 2, 3].map(i => (
+                                <div key={i} className="flex gap-2 items-center">
+                                  <div className="w-3 h-3 border rounded-sm shrink-0" />
+                                  <div className="flex-1 h-4 bg-[var(--bg-muted)] rounded" />
+                                  <div className="w-14 h-4 bg-[var(--bg-muted)]/60 rounded" />
+                                </div>
+                              ))}
+                            </>
+                          )}
+                          {t.id === "brainstorm" && (
+                            <>
+                              {[1,2,3,4].map(i => (
+                                <div key={i} className="flex gap-2 items-center">
+                                  <span className="text-[var(--accent)] text-xs">•</span>
+                                  <div className="flex-1 h-4 bg-[var(--bg-muted)] rounded" style={{ width: `${100 - i * 10}%` }} />
+                                </div>
+                              ))}
+                            </>
+                          )}
+                          {t.id === "status" && (
+                            <>
+                              <div>
+                                <span className="text-[10px] uppercase tracking-wide text-[var(--status-live)] font-medium">What's working</span>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
+                              </div>
+                              <div className="pt-1">
+                                <span className="text-[10px] uppercase tracking-wide text-[var(--status-warning)] font-medium">What's not</span>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
+                              </div>
+                              <div className="pt-1">
+                                <span className="text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Next steps</span>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
+                              </div>
+                            </>
+                          )}
+                          {t.id === "notes" && (
+                            <>
+                              <div className="h-3 bg-[var(--bg-muted)] rounded" />
+                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "85%" }} />
+                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "90%" }} />
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {showDraftPrompt && (
+          <div className="fixed inset-0 z-50 bg-[var(--bg-overlay)] flex items-center justify-center px-6">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+              <div>
+                <h3 className="text-base font-medium text-[var(--text-primary)]">Save as draft?</h3>
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  Would you like to save this meeting as a draft so you can finish it later?
+                </p>
+              </div>
+              <div className="flex gap-2 justify-end pt-1">
+                <Button
+                  variant="outline"
+                  onClick={() => { setShowDraftPrompt(false); onBack() }}
+                >
+                  No, discard
+                </Button>
+                <Button
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)]"
+                  onClick={() => { setShowDraftPrompt(false); onSaveDraft(buildMeeting()) }}
+                >
+                  Yes, save draft
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
     </div>
   )
 }

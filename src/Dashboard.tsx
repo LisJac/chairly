@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { MOCK_TODOS } from "./data"
-import type { Meeting, Todo } from "./types"
+import { MOCK_TODOS, MOCK_PROJECTS } from "./data"
+import type { Meeting, Todo, DocumentFile, DocumentFileType } from "./types"
 
 // ── Constants ─────────────────────────────────────────────
 const START_HOUR = 9
@@ -14,15 +14,30 @@ const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
-const COLORS = [
-  { bg: "bg-violet-100", border: "border-l-teal-600", text: "text-violet-900", chip: "bg-teal-600" },
-  { bg: "bg-sky-100",    border: "border-l-sky-500",    text: "text-sky-900",    chip: "bg-sky-500" },
-  { bg: "bg-emerald-100",border: "border-l-emerald-500",text: "text-emerald-900",chip: "bg-emerald-500" },
-  { bg: "bg-amber-100",  border: "border-l-amber-500",  text: "text-amber-900",  chip: "bg-amber-500" },
-  { bg: "bg-rose-100",   border: "border-l-rose-500",   text: "text-rose-900",   chip: "bg-rose-500" },
-]
 
 type ViewMode = "day" | "week" | "month"
+type DashboardView = "tiles" | "calendar"
+
+const CURRENT_USER = "Lisa Jacob"
+
+// Meeting role colors
+const ROLE_FACILITATE = { bg: "bg-[var(--accent-soft)]",        border: "border-l-[var(--accent)]",        text: "text-[var(--text-on-soft)]",   chip: "bg-[var(--accent)]" }
+const ROLE_PARTICIPATE = { bg: "bg-[var(--status-info-soft)]",  border: "border-l-[var(--status-info)]",   text: "text-[var(--status-info)]",    chip: "bg-[var(--status-info)]" }
+const roleColor = (m: { owner: string }) => m.owner === CURRENT_USER ? ROLE_FACILITATE : ROLE_PARTICIPATE
+
+const FILE_ICONS: Record<DocumentFileType, string> = {
+  protocol: "📝",
+  pdf:      "📕",
+  doc:      "📄",
+  sheet:    "📊",
+  image:    "🖼️",
+  link:     "🔗",
+}
+
+function formatShortDate(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00")
+  return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`
+}
 
 // ── Helpers ───────────────────────────────────────────────
 function getWeekStart(d: Date) {
@@ -78,7 +93,7 @@ function TimeGrid({
               style={{ height: HOUR_H }}>{h}:00</div>
             {days.map((d, di) => (
               <div key={di}
-                className={`border-r last:border-r-0 border-b relative ${isSameDay(d, today) ? "bg-teal-50/40" : ""}`}
+                className={`border-r last:border-r-0 border-b relative ${isSameDay(d, today) ? "bg-[var(--accent-soft)]/40" : ""}`}
                 style={{ height: HOUR_H }} />
             ))}
           </div>
@@ -90,7 +105,7 @@ function TimeGrid({
           return dayMeetings.map(m => {
             const top = mTop(m.startTime)
             const height = mHeight(m.startTime, m.endTime)
-            const color = COLORS[m.id % COLORS.length]
+            const color = roleColor(m)
             if (top < 0 || top > HOURS.length * HOUR_H) return null
             const colW = showSingleDay ? `calc(100% - 52px - 4px)` : `calc((100% - 52px) / ${cols} - 4px)`
             const colLeft = showSingleDay
@@ -107,7 +122,7 @@ function TimeGrid({
                 {height >= 36 && <p className="text-[10px] opacity-70 mt-0.5">{m.startTime} – {m.endTime}</p>}
                 {height >= 52 && m.owner && <p className="text-[10px] opacity-60 truncate mt-0.5">{m.owner}</p>}
                 <button
-                  className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/0 hover:bg-red-500 text-transparent hover:text-white flex items-center justify-center text-[10px] leading-none opacity-0 group-hover/block:opacity-100 transition-all"
+                  className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/0 hover:bg-[var(--status-recording)] text-transparent hover:text-[var(--text-on-accent)] flex items-center justify-center text-[10px] leading-none opacity-0 group-hover/block:opacity-100 transition-all"
                   onClick={e => { e.stopPropagation(); onMeetingDelete(m.id) }}
                   title="Meeting löschen"
                 >×</button>
@@ -126,8 +141,8 @@ function TimeGrid({
             width: showSingleDay ? `calc(100% - 52px)` : `calc((100% - 52px) / ${cols})`,
             zIndex: 20,
           }}>
-            <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 shrink-0" />
-            <div className="flex-1 h-0.5 bg-red-500" />
+            <div className="w-2 h-2 rounded-full bg-[var(--status-recording)] -ml-1 shrink-0" />
+            <div className="flex-1 h-0.5 bg-[var(--status-recording)]" />
           </div>
         )}
       </div>
@@ -144,6 +159,10 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
 }) {
   const [todos, setTodos] = useState<Todo[]>(MOCK_TODOS)
   const [newTodo, setNewTodo] = useState("")
+  const [isAddingTodo, setIsAddingTodo] = useState(false)
+  const newTodoRef = useRef<HTMLInputElement>(null)
+  const [dashboardView, setDashboardView] = useState<DashboardView>("tiles")
+  const [openProjectId, setOpenProjectId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("week")
   const [offset, setOffset] = useState(0)          // weeks / days / months
   const [nowY, setNowY] = useState<number | null>(null)
@@ -201,16 +220,16 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
         const isToday = isSameDay(d, today)
         const hasMtg  = meetings.some(m => m.date === toDateStr(d))
         return (
-          <div key={i} className={`py-2 text-center border-r last:border-r-0 ${isToday ? "bg-teal-50" : ""}`}>
+          <div key={i} className={`py-2 text-center border-r last:border-r-0 ${isToday ? "bg-[var(--accent-soft)]" : ""}`}>
             {days.length > 1 && <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
               {DAYS_SHORT[i === 6 ? 6 : i]}
             </div>}
             <div className={`text-lg font-bold leading-none mt-0.5 mx-auto w-8 h-8 flex items-center justify-center rounded-full
-              ${isToday ? "bg-teal-700 text-white" : "text-[#1C1F3A]"}`}>
+              ${isToday ? "bg-[var(--accent)] text-[var(--text-on-accent)]" : "text-[var(--text-primary)]"}`}>
               {d.getDate()}
             </div>
             <div className="h-1.5 flex justify-center mt-1">
-              {hasMtg && <div className={`w-1.5 h-1.5 rounded-full ${isToday ? "bg-white" : "bg-teal-400"}`} />}
+              {hasMtg && <div className={`w-1.5 h-1.5 rounded-full ${isToday ? "bg-[var(--text-on-accent)]" : "bg-[var(--accent)]"}`} />}
             </div>
           </div>
         )
@@ -230,34 +249,269 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
 
   return (
     <div className="min-h-screen bg-muted/40 flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#1C1F3A] text-white h-14 flex items-center px-8 gap-3 shadow-md shrink-0">
-        <span className="text-xl font-extrabold tracking-tight">Chair<span className="text-teal-400">ly</span></span>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-teal-700 text-white text-xs font-bold flex items-center justify-center">LJ</div>
+      {/* ── Greeting + View toggle + Profile ── */}
+      <div className="max-w-6xl mx-auto w-full px-4 pt-10 pb-10 flex items-center justify-between gap-4">
+        <h1 className="text-4xl font-bold text-[var(--text-primary)] tracking-tight">Hello, Lisa 👋</h1>
+        <div className="w-11 h-11 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-sm font-medium flex items-center justify-center shadow-sm shrink-0">
+          LJ
         </div>
-      </header>
-
-      {/* ── Greeting (full width above columns) ── */}
-      <div className="max-w-6xl mx-auto w-full px-4 pt-8 pb-5">
-        <h1 className="text-4xl font-bold text-[#1C1F3A] tracking-tight">Hello, Lisa 👋</h1>
-        <p className="text-sm text-muted-foreground mt-1.5">{meetings.length} meetings · {openTodos.length} open to-dos</p>
       </div>
 
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* TILES VIEW                                              */}
+      {/* ════════════════════════════════════════════════════════ */}
+      {dashboardView === "tiles" && (() => {
+        // Sort chronologically: nearest upcoming first, furthest in future at bottom
+        const upcoming = [...meetings].sort(
+          (a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime)
+        )
+
+        const openProject = MOCK_PROJECTS.find(p => p.id === openProjectId)
+
+        return (
+          <div className="max-w-7xl mx-auto w-full px-4 pb-10">
+
+            {/* 3-column row: Meetings · To-dos · Documents */}
+            <div className="grid grid-cols-3 gap-5 items-start">
+
+              {/* ── Meetings tile ── */}
+              <Card>
+                <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 space-y-0">
+                  <CardTitle className="text-base">Meetings</CardTitle>
+                  <Button
+                    onClick={onNewMeeting}
+                    className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm font-medium"
+                  >
+                    + Create meeting
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {upcoming.length === 0 ? (
+                    <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+                      No upcoming meetings — time to create one ✨
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {upcoming.map(m => {
+                        const color = roleColor(m)
+                        const dateLabel = formatShortDate(m.date)
+                        return (
+                          <div
+                            key={m.id}
+                            onClick={() => onMeetingClick(m.id)}
+                            className="flex items-center gap-4 px-5 py-3 hover:bg-muted/50 cursor-pointer group/mtg transition-colors"
+                          >
+                            <div className={`w-14 shrink-0 rounded-md border ${color.bg} ${color.text} py-1.5 px-2 text-center`}>
+                              <div className="text-[10px] font-medium uppercase tracking-wide opacity-80">
+                                {dateLabel.split(" ")[0]}
+                              </div>
+                              <div className="text-base font-medium leading-none mt-0.5">
+                                {dateLabel.split(" ")[1]}
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium text-[var(--text-primary)] truncate">{m.title}</p>
+                                {m.isDraft && (
+                                  <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--status-warning-soft)] text-[var(--status-warning)]">
+                                    Draft
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {m.startTime} – {m.endTime} · {m.participants.length} participant{m.participants.length !== 1 ? "s" : ""}
+                              </p>
+                              <p className="text-[11px] mt-1 flex items-center gap-1">
+                                <span className="text-muted-foreground">🎤 Facilitated by</span>
+                                <span className={`font-medium ${m.owner === CURRENT_USER ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+                                  {m.owner === CURRENT_USER ? "you" : m.owner}
+                                </span>
+                              </p>
+                            </div>
+                            <button
+                              onClick={e => { e.stopPropagation(); onMeetingDelete(m.id) }}
+                              className="opacity-0 group-hover/mtg:opacity-100 text-muted-foreground hover:text-destructive text-base transition-opacity shrink-0 px-1"
+                              title="Delete meeting"
+                            >×</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {/* Open calendar — secondary action */}
+                  <div className="px-5 py-3 border-t">
+                    <button
+                      onClick={() => setDashboardView("calendar")}
+                      className="w-full text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-muted/50 rounded-md py-2 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      📅 Open calendar
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── To-dos tile ── */}
+              <Card>
+                <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3 space-y-0">
+                  <CardTitle className="text-base">To-dos</CardTitle>
+                  <Button
+                    onClick={() => {
+                      setIsAddingTodo(true)
+                      setTimeout(() => newTodoRef.current?.focus(), 0)
+                    }}
+                    className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm font-medium"
+                  >
+                    + Create To-Do
+                  </Button>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 space-y-1">
+                  {isAddingTodo && (
+                    <div className="mb-3">
+                      <input
+                        ref={newTodoRef}
+                        className="w-full text-sm border rounded-md px-3 py-1.5 outline-none focus:ring-2 focus:ring-ring bg-background placeholder:text-muted-foreground"
+                        placeholder="What needs to get done?"
+                        value={newTodo}
+                        onChange={e => setNewTodo(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") { addTodo(); setIsAddingTodo(false) }
+                          if (e.key === "Escape") { setNewTodo(""); setIsAddingTodo(false) }
+                        }}
+                        onBlur={() => {
+                          if (newTodo.trim()) { addTodo() }
+                          setIsAddingTodo(false)
+                        }}
+                      />
+                    </div>
+                  )}
+                  {openTodos.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">No open tasks 🎉</p>}
+                  {openTodos.map(todo => (
+                    <div key={todo.id} className="flex items-start gap-2.5 py-2 group/todo">
+                      <input type="checkbox" checked={false} onChange={() => toggleTodo(todo.id)}
+                        className="mt-0.5 accent-[var(--accent)] w-4 h-4 shrink-0 cursor-pointer" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm leading-snug">{todo.text}</p>
+                        {todo.meetingTitle && <p className="text-[10px] text-muted-foreground mt-0.5 truncate">↳ {todo.meetingTitle}</p>}
+                      </div>
+                      <button onClick={() => deleteTodo(todo.id)} className="opacity-0 group-hover/todo:opacity-100 text-muted-foreground hover:text-destructive text-sm transition-opacity shrink-0">×</button>
+                    </div>
+                  ))}
+                  {doneTodos.length > 0 && (
+                    <>
+                      <Separator className="my-2" />
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Done</p>
+                      {doneTodos.map(todo => (
+                        <div key={todo.id} className="flex items-start gap-2.5 py-1.5 group/todo opacity-50">
+                          <input type="checkbox" checked={true} onChange={() => toggleTodo(todo.id)}
+                            className="mt-0.5 accent-[var(--accent)] w-4 h-4 shrink-0 cursor-pointer" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm line-through leading-snug">{todo.text}</p>
+                            {todo.meetingTitle && <p className="text-[10px] text-muted-foreground mt-0.5 truncate">↳ {todo.meetingTitle}</p>}
+                          </div>
+                          <button onClick={() => deleteTodo(todo.id)} className="opacity-0 group-hover/todo:opacity-100 text-muted-foreground hover:text-destructive text-sm transition-opacity shrink-0">×</button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+            {/* ── Documents tile ── */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  {openProject ? (
+                    <>
+                      <button
+                        onClick={() => setOpenProjectId(null)}
+                        className="text-muted-foreground hover:text-[var(--text-primary)] transition-colors"
+                      >
+                        Documents
+                      </button>
+                      <span className="text-muted-foreground">›</span>
+                      <span>{openProject.emoji} {openProject.name}</span>
+                    </>
+                  ) : (
+                    <>Documents</>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {!openProject ? (
+                  /* Project list */
+                  <div className="divide-y">
+                    {MOCK_PROJECTS.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => setOpenProjectId(p.id)}
+                        className="w-full flex items-center gap-3 px-5 py-3 hover:bg-muted/50 transition-colors text-left"
+                      >
+                        <span className="text-2xl shrink-0">{p.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">{p.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {p.files.length} file{p.files.length !== 1 ? "s" : ""}
+                            {p.description && <> · {p.description}</>}
+                          </p>
+                        </div>
+                        <span className="text-muted-foreground text-sm">›</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  /* File list */
+                  <div className="divide-y">
+                    {openProject.files.map((f: DocumentFile) => (
+                      <div
+                        key={f.id}
+                        className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/50 cursor-pointer transition-colors"
+                      >
+                        <span className="text-lg shrink-0">{FILE_ICONS[f.type]}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-[var(--text-primary)] truncate">{f.name}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {formatShortDate(f.date)} · {f.author}
+                            {f.meetingTitle && <> · ↳ {f.meetingTitle}</>}
+                          </p>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+                          {f.type}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* ════════════════════════════════════════════════════════ */}
+      {/* CALENDAR VIEW                                           */}
+      {/* ════════════════════════════════════════════════════════ */}
+      {dashboardView === "calendar" && (
       <div className="flex flex-1 max-w-6xl mx-auto w-full px-4 pb-6 gap-5 min-h-0">
         {/* ── Calendar ── */}
         <div className="flex-1 flex flex-col min-w-0">
 
           {/* Controls row — aligned with To-dos header */}
           <div className="flex items-center gap-2 mb-4 h-9 justify-between">
+              <button
+                onClick={() => setDashboardView("tiles")}
+                className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors mr-1"
+              >
+                ← Overview
+              </button>
               {/* View switcher */}
-              <div className="flex rounded-lg border bg-white overflow-hidden text-sm font-medium">
+              <div className="flex rounded-lg border bg-[var(--bg-card)] overflow-hidden text-sm font-medium">
                 {(["day","week","month"] as ViewMode[]).map(v => (
                   <button
                     key={v}
                     onClick={() => { setViewMode(v); setOffset(0) }}
                     className={`px-3 py-1.5 capitalize transition-colors border-r last:border-r-0
-                      ${viewMode === v ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted/60"}`}
+                      ${viewMode === v ? "bg-[var(--accent)] text-[var(--text-on-accent)]" : "text-muted-foreground hover:bg-muted/60"}`}
                   >
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </button>
@@ -268,18 +522,18 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
               <Button variant="outline" size="sm" onClick={() => setOffset(0)} className="text-xs h-8">Today</Button>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setOffset(o => o - 1)}>‹</Button>
-                <span className="text-sm font-medium text-[#1C1F3A] min-w-40 text-center">{navLabel}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)] min-w-40 text-center">{navLabel}</span>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setOffset(o => o + 1)}>›</Button>
               </div>
 
               {/* New Meeting */}
-              <Button onClick={onNewMeeting} className="bg-teal-700 hover:bg-teal-600 text-white h-8 text-sm ml-auto">
+              <Button onClick={onNewMeeting} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm ml-auto">
                 + New Meeting
               </Button>
           </div>
 
           {/* ── Calendar body ── */}
-          <div className="bg-white rounded-xl border shadow-sm flex flex-col flex-1 overflow-hidden" ref={scrollRef}>
+          <div className="bg-[var(--bg-card)] rounded-xl border shadow-sm flex flex-col flex-1 overflow-hidden" ref={scrollRef}>
 
             {/* DAY */}
             {viewMode === "day" && (
@@ -329,14 +583,14 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
                     return (
                       <div key={i} className={`border-r border-b last:border-r-0 p-1.5 min-h-[90px] flex flex-col gap-1
                         ${!isThisMonth ? "bg-muted/30" : ""}
-                        ${isToday ? "bg-teal-50/60" : ""}`}
+                        ${isToday ? "bg-[var(--accent-soft)]/60" : ""}`}
                       >
                         <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full self-end
-                          ${isToday ? "bg-teal-700 text-white" : isThisMonth ? "text-[#1C1F3A]" : "text-muted-foreground"}`}>
+                          ${isToday ? "bg-[var(--accent)] text-[var(--text-on-accent)]" : isThisMonth ? "text-[var(--text-primary)]" : "text-muted-foreground"}`}>
                           {d.getDate()}
                         </div>
                         {dayMeetings.slice(0, 3).map(m => {
-                          const color = COLORS[m.id % COLORS.length]
+                          const color = roleColor(m)
                           return (
                             <div key={m.id}
                               className={`relative flex items-center gap-1 text-[10px] font-medium pl-1.5 pr-1 py-0.5 rounded border-l-2 cursor-pointer hover:brightness-95 transition-all group/chip ${color.bg} ${color.border} ${color.text}`}
@@ -345,7 +599,7 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
                             >
                               <span className="truncate flex-1">{m.startTime} {m.title}</span>
                               <button
-                                className="shrink-0 w-3.5 h-3.5 rounded-full opacity-0 group-hover/chip:opacity-100 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all text-[9px] leading-none"
+                                className="shrink-0 w-3.5 h-3.5 rounded-full opacity-0 group-hover/chip:opacity-100 hover:bg-[var(--status-recording)] hover:text-[var(--text-on-accent)] flex items-center justify-center transition-all text-[9px] leading-none"
                                 onClick={e => { e.stopPropagation(); onMeetingDelete(m.id) }}
                                 title="Löschen"
                               >×</button>
@@ -367,7 +621,7 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
         {/* ── Todos ── */}
         <div className="w-72 shrink-0 flex flex-col gap-4">
           <div className="flex items-center justify-between h-9 mb-0">
-            <h2 className="font-semibold text-[#1C1F3A]">To-dos</h2>
+            <h2 className="font-semibold text-[var(--text-primary)]">To-dos</h2>
             <span className="text-xs text-muted-foreground">{openTodos.length} open</span>
           </div>
 
@@ -380,14 +634,14 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
                   onChange={e => setNewTodo(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && addTodo()}
                 />
-                <Button size="sm" className="bg-[#1C1F3A] hover:bg-[#2D3260] shrink-0" onClick={addTodo}>+</Button>
+                <Button size="sm" className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] shrink-0" onClick={addTodo}>+</Button>
               </div>
 
               {openTodos.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">No open tasks 🎉</p>}
               {openTodos.map(todo => (
                 <div key={todo.id} className="flex items-start gap-2.5 py-2 group/todo">
                   <input type="checkbox" checked={false} onChange={() => toggleTodo(todo.id)}
-                    className="mt-0.5 accent-teal-700 w-4 h-4 shrink-0 cursor-pointer" />
+                    className="mt-0.5 accent-[var(--accent)] w-4 h-4 shrink-0 cursor-pointer" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-snug">{todo.text}</p>
                     {todo.meetingTitle && <p className="text-[10px] text-muted-foreground mt-0.5 truncate">↳ {todo.meetingTitle}</p>}
@@ -403,7 +657,7 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
                   {doneTodos.map(todo => (
                     <div key={todo.id} className="flex items-start gap-2.5 py-1.5 group/todo opacity-50">
                       <input type="checkbox" checked={true} onChange={() => toggleTodo(todo.id)}
-                        className="mt-0.5 accent-teal-700 w-4 h-4 shrink-0 cursor-pointer" />
+                        className="mt-0.5 accent-[var(--accent)] w-4 h-4 shrink-0 cursor-pointer" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm line-through leading-snug">{todo.text}</p>
                         {todo.meetingTitle && <p className="text-[10px] text-muted-foreground mt-0.5 truncate">↳ {todo.meetingTitle}</p>}
@@ -428,7 +682,7 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
                 { label: "Done",          value: doneTodos.length },
               ].map(({ label, value }) => (
                 <div key={label} className="bg-muted/60 rounded-lg px-3 py-2">
-                  <p className="text-xl font-bold text-[#1C1F3A]">{value}</p>
+                  <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
                   <p className="text-[11px] text-muted-foreground">{label}</p>
                 </div>
               ))}
@@ -436,6 +690,7 @@ export default function Dashboard({ meetings, onNewMeeting, onMeetingClick, onMe
           </Card>
         </div>
       </div>
+      )}
     </div>
   )
 }
