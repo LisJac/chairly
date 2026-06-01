@@ -11,35 +11,47 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
 
-// Available capture templates per agenda type (suggested)
+// Thinking frameworks / templates available per Goal
 const TEMPLATES: { id: TemplateId; name: string; icon: string }[] = [
-  { id: "none",       name: "No template",     icon: "—" },
-  { id: "decision",   name: "Decision",        icon: "✅" },
-  { id: "actions",    name: "Action items",    icon: "📌" },
-  { id: "brainstorm", name: "Brainstorm",      icon: "💡" },
-  { id: "status",     name: "Status update",   icon: "📊" },
-  { id: "notes",      name: "Free notes",      icon: "📝" },
+  { id: "none",                name: "No template",               icon: "—" },
+  { id: "basic_info",          name: "Basic Information",         icon: "📋" },
+  { id: "grow",                name: "GROW",                      icon: "🎯" },
+  { id: "three_field",         name: "3 Field Method",            icon: "🗂️" },
+  { id: "konsent",             name: "Konsent Entscheid",         icon: "✅" },
+  { id: "systemic_condensing", name: "Systemisches Kondensieren", icon: "🔍" },
 ]
 
+// Which templates are valid for which Goal
+const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
+  information:  ["basic_info"],
+  beratung:     ["grow", "three_field"],          // Input
+  entscheidung: ["konsent", "systemic_condensing"], // Decision
+  kreativ:      [],                                // Ideas (Brainstorm) — empty
+  ankommen:     [],
+  checkout:     [],
+  brainstorm:   [],
+  sonstige:     [],
+}
+
 const SUGGESTED_TEMPLATE: Record<AgendaType, TemplateId> = {
-  information:  "notes",
-  entscheidung: "decision",
-  brainstorm:   "brainstorm",
-  beratung:     "notes",
-  kreativ:      "brainstorm",
+  information:  "basic_info",
+  beratung:     "grow",
+  entscheidung: "konsent",
+  kreativ:      "none",
   ankommen:     "none",
   checkout:     "none",
-  sonstige:     "notes",
+  brainstorm:   "none",
+  sonstige:     "none",
 }
 
 const TYPES: Record<AgendaType, { label: string; color: string }> = {
   information:  { label: "Information",    color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  beratung:     { label: "Input",          color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
   entscheidung: { label: "Decision",       color: "bg-[var(--accent-soft)] text-[var(--text-on-soft)]" },
-  brainstorm:   { label: "Brainstorm",     color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
-  beratung:     { label: "Advisory",       color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
-  kreativ:      { label: "Creative",       color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
+  kreativ:      { label: "Ideas",          color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
   ankommen:     { label: "Check-in",       color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
   checkout:     { label: "Check-out",      color: "bg-[var(--bg-surface)] text-[var(--text-secondary)]" },
+  brainstorm:   { label: "Brainstorm",     color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
   sonstige:     { label: "Other",          color: "bg-[var(--bg-muted)] text-[var(--text-tertiary)]" },
 }
 
@@ -114,14 +126,16 @@ export default function MeetingForm({
   const [showDraftPrompt, setShowDraftPrompt] = useState(false)
   const [previewForItemId, setPreviewForItemId] = useState<number | null>(null)
   const [showValidation, setShowValidation] = useState(false)
+  const [useBuffer, setUseBuffer] = useState(true)
   const [agenda, setAgenda] = useState<AgendaItem[]>(draft?.agenda ?? [
-    { id: 1, topic: "Opening & Warm-up",    type: "information",  template: "notes",    outcome: "", duration: "", note: "" },
-    { id: 2, topic: "Main Topic",            type: "entscheidung", template: "decision", outcome: "", duration: "", note: "" },
-    { id: 3, topic: "Next Steps & Wrap-up",  type: "beratung",     template: "actions",  outcome: "", duration: "", note: "" },
+    { id: 1, topic: "Warm Up",    type: "ankommen",     useGenerator: true,  outcome: "", duration: "5", note: "" },
+    { id: 2, topic: "Main Topic", type: "entscheidung", template: "konsent", outcome: "", duration: "",  note: "" },
+    { id: 3, topic: "Wrap Up",    type: "checkout",     useGenerator: true,  outcome: "", duration: "5", note: "" },
   ])
 
   const agendaMin = agenda.reduce((s, i) => s + (parseInt(i.duration) || 0), 0)
-  const totalMin = agendaMin + BUFFER
+  const bufferMin = useBuffer ? BUFFER : 0
+  const totalMin = agendaMin + bufferMin
   const endTime = calcEndTime(startTime, totalMin)
 
   const dragItem = useRef<number | null>(null)
@@ -145,7 +159,15 @@ export default function MeetingForm({
   }
 
   const addRow = () =>
-    setAgenda(a => [...a, { id: ++idCounter, topic: "", type: "information", template: "notes", outcome: "", duration: "", note: "" }])
+    setAgenda(a => {
+      const newItem: AgendaItem = { id: ++idCounter, topic: "", type: "information", template: "basic_info", outcome: "", duration: "", note: "" }
+      // Keep any check-out item as the last agenda point
+      const lastIdx = a.length - 1
+      if (lastIdx >= 0 && a[lastIdx].type === "checkout") {
+        return [...a.slice(0, lastIdx), newItem, a[lastIdx]]
+      }
+      return [...a, newItem]
+    })
 
   const updateRow = useCallback(<K extends keyof AgendaItem>(id: number, key: K, val: AgendaItem[K]) => {
     setAgenda(a => a.map(r => {
@@ -233,16 +255,16 @@ export default function MeetingForm({
           <CardContent className="space-y-8">
             <div className="space-y-1.5">
               <Label htmlFor="name">Meeting Name</Label>
-              <Input id="name" placeholder="e.g. Q2 2026 Quarterly Review" value={meetingName} onChange={e => setMeetingName(e.target.value)} />
+              <Input id="name" className="h-10" placeholder="e.g. Q2 2026 Quarterly Review" value={meetingName} onChange={e => setMeetingName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="intention">Meeting Intention</Label>
-              <Input id="intention" placeholder="Why is this meeting happening?" value={intention} onChange={e => setIntention(e.target.value)} />
+              <Input id="intention" className="h-10" placeholder="Why is this meeting happening?" value={intention} onChange={e => setIntention(e.target.value)} />
               <p className="text-xs text-muted-foreground">What's the reason? What should it accomplish?</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="outcome">Desired Outcome</Label>
-              <Input id="outcome" placeholder="What does a successful meeting look like?" value={desiredOutcome} onChange={e => setDesiredOutcome(e.target.value)} />
+              <Input id="outcome" className="h-10" placeholder="What does a successful meeting look like?" value={desiredOutcome} onChange={e => setDesiredOutcome(e.target.value)} />
               <p className="text-xs text-muted-foreground">What needs to be achieved by the end?</p>
             </div>
           </CardContent>
@@ -294,83 +316,150 @@ export default function MeetingForm({
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Topic</Label>
                     <Input
-                      className="h-9 text-sm"
+                      className="h-10 text-sm"
                       placeholder="What will be discussed?"
                       value={item.topic}
                       onChange={e => updateRow(item.id, "topic", e.target.value)}
                     />
                   </div>
 
-                  {/* Line 2: Type (50%) + Template (50%) — full width */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Type</Label>
-                      <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
-                        <SelectTrigger className="h-10 text-sm w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {(Object.keys(TYPES) as AgendaType[]).map(t => (
-                            <SelectItem key={t} value={t} className="text-sm">{TYPES[t].label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Template</Label>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewForItemId(item.id)}
-                          className="text-[10px] font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          Templates preview
-                        </button>
-                      </div>
-                      <Select value={item.template ?? "none"} onValueChange={v => updateRow(item.id, "template", v as TemplateId)}>
-                        <SelectTrigger className="h-10 text-sm w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {TEMPLATES.map(t => (
-                            <SelectItem key={t.id} value={t.id} className="text-sm">
-                              <span className="mr-1.5">{t.icon}</span>{t.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  {(() => {
+                    const isCheckin   = item.type === "ankommen"
+                    const isCheckout  = item.type === "checkout"
+                    const isGenerator = isCheckin || isCheckout
+                    const generatorLabel = isCheckin ? "Checkin Generator" : "Retro Generator"
+                    const generatorHint  = isCheckin
+                      ? "spontaneously generated during the meeting"
+                      : "spontaneously generated during the meeting"
 
-                  {/* Line 3: Outcome + Duration */}
-                  <div className="grid grid-cols-[1fr_120px] gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Expected outcome</Label>
-                      <Input
-                        className="h-9 text-sm"
-                        placeholder="What should be achieved?"
-                        value={item.outcome}
-                        onChange={e => updateRow(item.id, "outcome", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Duration</Label>
-                      <div className={`flex items-center gap-1 border rounded-md px-2 bg-background h-9 focus-within:ring-2 focus-within:ring-ring ${
-                        showValidation && isInvalidDuration(item.duration) ? "border-destructive ring-2 ring-destructive/20" : ""
-                      }`}>
-                        <Input
-                          className="h-8 text-sm text-right border-0 shadow-none focus-visible:ring-0 p-0 min-w-0"
-                          type="number" min={1} max={180} placeholder="0"
-                          value={item.duration}
-                          onChange={e => updateRow(item.id, "duration", e.target.value)}
-                        />
-                        <span className="text-xs text-muted-foreground shrink-0">min</span>
+                    // Shared Goal select (was Type)
+                    const GoalSelect = (
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Goal</Label>
+                        <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
+                          <SelectTrigger className="!h-10 text-sm w-full">
+                            <SelectValue>{TYPES[item.type].label}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(Object.keys(TYPES) as AgendaType[])
+                              .filter(t => t !== "brainstorm")
+                              .map(t => (
+                                <SelectItem key={t} value={t} className="text-sm">{TYPES[t].label}</SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      {showValidation && isInvalidDuration(item.duration) && (
-                        <p className="text-[11px] text-destructive font-medium mt-1">Estimate the time</p>
-                      )}
-                    </div>
-                  </div>
+                    )
+
+                    // Shared Duration input
+                    const DurationInput = (
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Duration</Label>
+                        <div className={`flex items-center gap-1 border rounded-md px-2 bg-background h-10 focus-within:ring-2 focus-within:ring-ring ${
+                          showValidation && isInvalidDuration(item.duration) ? "border-destructive ring-2 ring-destructive/20" : ""
+                        }`}>
+                          <Input
+                            className="h-9 text-sm text-right border-0 shadow-none focus-visible:ring-0 p-0 min-w-0"
+                            type="number" min={1} max={180} placeholder="0"
+                            value={item.duration}
+                            onChange={e => updateRow(item.id, "duration", e.target.value)}
+                          />
+                          <span className="text-xs text-muted-foreground shrink-0">min</span>
+                        </div>
+                        {showValidation && isInvalidDuration(item.duration) && (
+                          <p className="text-[11px] text-destructive font-medium mt-1">Estimate the time</p>
+                        )}
+                      </div>
+                    )
+
+                    if (isGenerator) {
+                      return (
+                        <>
+                          {/* Row: Goal + Duration */}
+                          <div className="grid grid-cols-[1fr_120px] gap-3">
+                            {GoalSelect}
+                            {DurationInput}
+                          </div>
+                          {/* Subtle generator checkbox below Goal */}
+                          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer pt-0.5">
+                            <input
+                              type="checkbox"
+                              checked={item.useGenerator ?? true}
+                              onChange={e => updateRow(item.id, "useGenerator", e.target.checked)}
+                              className="accent-[var(--accent)] w-3.5 h-3.5 shrink-0 cursor-pointer"
+                            />
+                            <span>
+                              <span className="text-[var(--text-secondary)] font-medium">✨ {generatorLabel}</span>
+                              <span className="ml-1.5">— {generatorHint}</span>
+                            </span>
+                          </label>
+                        </>
+                      )
+                    }
+
+                    // Normal: Goal + Duration on row 2, Template (with left bar) on row 3, Outcome (full width) on row 4
+                    return (
+                      <>
+                        {/* Row 2: Goal + Duration */}
+                        <div className="grid grid-cols-[1fr_120px] gap-3">
+                          {GoalSelect}
+                          {DurationInput}
+                        </div>
+
+                        {/* Row 3: Template (with left visual bar — filtered by goal) */}
+                        <div className="border-l-2 border-[var(--border-default)] pl-3 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Template <span className="text-[var(--text-tertiary)] normal-case font-normal ml-0.5">— filtered by goal</span>
+                            </Label>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewForItemId(item.id)}
+                              className="text-[10px] font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              Templates preview
+                            </button>
+                          </div>
+                          <Select value={item.template ?? "none"} onValueChange={v => updateRow(item.id, "template", v as TemplateId)}>
+                            <SelectTrigger className="!h-10 text-sm w-full">
+                              <SelectValue>
+                                {(() => {
+                                  const t = TEMPLATES.find(x => x.id === (item.template ?? "none"))
+                                  return t ? <><span className="mr-1.5">{t.icon}</span>{t.name}</> : null
+                                })()}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TEMPLATES
+                                .filter(t => t.id === "none" || TEMPLATES_BY_GOAL[item.type]?.includes(t.id))
+                                .map(t => (
+                                  <SelectItem key={t.id} value={t.id} className="text-sm">
+                                    <span className="mr-1.5">{t.icon}</span>{t.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Row 4: Outcome (full width) */}
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                            Outcome <span className="text-[var(--text-tertiary)] normal-case font-normal ml-0.5">recommended</span>
+                          </Label>
+                          <Input
+                            className="h-10 text-sm"
+                            placeholder="e.g. We agreed on a tool"
+                            value={item.outcome}
+                            onChange={e => updateRow(item.id, "outcome", e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             ))}
@@ -381,10 +470,24 @@ export default function MeetingForm({
 
             <Separator />
 
-            {/* Yellow buffer hint — moved ABOVE time planning */}
-            <div className="text-xs text-[var(--status-warning)] bg-[var(--status-warning-soft)] border border-[var(--status-warning)]/30 rounded-md px-3 py-2 font-medium">
-              ⏱ A 10-minute buffer is automatically added. If you finish on time, use those 10 minutes to chat and connect.
-            </div>
+            {/* Buffer opt-out checkbox */}
+            <label
+              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-md border cursor-pointer transition-all
+                ${useBuffer
+                  ? "bg-[var(--status-warning-soft)] border-[var(--status-warning)]/30"
+                  : "bg-muted/40 border-border"}`}
+            >
+              <input
+                type="checkbox"
+                checked={useBuffer}
+                onChange={e => setUseBuffer(e.target.checked)}
+                className="mt-0.5 accent-[var(--accent)] w-4 h-4 shrink-0 cursor-pointer"
+              />
+              <span className={`text-xs leading-relaxed ${useBuffer ? "text-[var(--status-warning)]" : "text-muted-foreground"}`}>
+                <span className="font-medium">⏱ We recommend a 10 minute buffer</span>
+                <span className="ml-1">— if you finish earlier, use the time to chitchat.</span>
+              </span>
+            </label>
 
             <div className="space-y-2">
               <div className="flex justify-between items-baseline text-sm font-semibold">
@@ -393,7 +496,7 @@ export default function MeetingForm({
               </div>
               <div className="flex gap-4 text-xs text-muted-foreground">
                 <span>Agenda: <strong className="text-foreground">{agendaMin} min</strong></span>
-                <span>Buffer: <strong className="text-foreground">{BUFFER} min</strong></span>
+                {useBuffer && <span>Buffer: <strong className="text-foreground">{BUFFER} min</strong></span>}
               </div>
             </div>
 
@@ -421,21 +524,21 @@ export default function MeetingForm({
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="date">Date</Label>
-                <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} />
+                <Input id="date" className="h-10" type="date" value={date} onChange={e => setDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="start">Start time</Label>
-                <Input id="start" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                <Input id="start" className="h-10" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label>End time</Label>
-                <Input value={endTime} readOnly className="bg-muted text-muted-foreground cursor-default" />
+                <Input value={endTime} readOnly className="h-10 bg-muted text-muted-foreground cursor-default" />
                 <p className="text-xs text-muted-foreground">Auto-calculated</p>
               </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="link">Link (Zoom / Teams / Meet)</Label>
-              <Input id="link" type="url" placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
+              <Input id="link" className="h-10" type="url" placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
             </div>
           </CardContent>
         </Card>
@@ -483,7 +586,7 @@ export default function MeetingForm({
 
             {/* Manual email input */}
             <div
-              className="flex flex-wrap gap-1.5 p-2 min-h-11 border rounded-md bg-background focus-within:ring-2 focus-within:ring-ring cursor-text"
+              className="flex flex-wrap gap-1.5 p-2 min-h-10 border rounded-md bg-background focus-within:ring-2 focus-within:ring-ring cursor-text"
               onClick={() => document.getElementById("tagInput")?.focus()}
             >
               {participants.map((p, i) => (
@@ -516,7 +619,7 @@ export default function MeetingForm({
           </CardHeader>
           <CardContent className="space-y-3">
             <Select value={owner} onValueChange={v => v && setOwner(v)}>
-              <SelectTrigger>
+              <SelectTrigger className="!h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -673,92 +776,99 @@ export default function MeetingForm({
                   >×</button>
                 </div>
                 <div className="grid grid-cols-2 gap-4 p-6">
-                  {TEMPLATES.map(t => {
-                    const isSelected = (targetItem.template ?? "none") === t.id
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => pick(t.id)}
-                        className={`text-left border rounded-lg p-4 transition-all hover:border-[var(--accent)] hover:shadow-sm
-                          ${isSelected ? "border-[var(--accent)] bg-[var(--accent-soft)]/30 ring-2 ring-[var(--accent)]/20" : "border-border bg-[var(--bg-card)]"}`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl">{t.icon}</span>
-                          <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
-                          {isSelected && <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Selected</span>}
-                        </div>
-                        {/* Preview content */}
-                        <div className="bg-[var(--bg-canvas)] border border-dashed border-border rounded-md p-3 space-y-1.5 text-xs">
-                          {t.id === "none" && (
-                            <p className="text-muted-foreground italic">No structured capture — facilitator notes during the meeting as they wish.</p>
-                          )}
-                          {t.id === "decision" && (
-                            <>
-                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Decision title</div>
-                              <div className="h-5 bg-[var(--bg-muted)] rounded" />
-                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Options considered</div>
-                              <div className="h-8 bg-[var(--bg-muted)] rounded" />
-                              <div className="flex gap-2 pt-1">
-                                <div className="flex-1">
-                                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Chosen</div>
-                                  <div className="h-5 bg-[var(--bg-muted)] rounded mt-0.5" />
+                  {TEMPLATES
+                    .filter(t => t.id === "none" || TEMPLATES_BY_GOAL[targetItem.type]?.includes(t.id))
+                    .map(t => {
+                      const isSelected = (targetItem.template ?? "none") === t.id
+                      return (
+                        <button
+                          key={t.id}
+                          onClick={() => pick(t.id)}
+                          className={`text-left border rounded-lg p-4 transition-all hover:border-[var(--accent)] hover:shadow-sm
+                            ${isSelected ? "border-[var(--accent)] bg-[var(--accent-soft)]/30 ring-2 ring-[var(--accent)]/20" : "border-border bg-[var(--bg-card)]"}`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl">{t.icon}</span>
+                            <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
+                            {isSelected && <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Selected</span>}
+                          </div>
+                          {/* Preview content */}
+                          <div className="bg-[var(--bg-canvas)] border border-dashed border-border rounded-md p-3 space-y-1.5 text-xs">
+                            {t.id === "none" && (
+                              <p className="text-muted-foreground italic">No structured framework — capture freely during the meeting.</p>
+                            )}
+                            {t.id === "basic_info" && (
+                              <>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Key info</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" />
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "80%" }} />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Why it matters</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Open questions</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "60%" }} />
+                              </>
+                            )}
+                            {t.id === "grow" && (
+                              <>
+                                {[
+                                  { letter: "G", word: "Goal" },
+                                  { letter: "R", word: "Reality" },
+                                  { letter: "O", word: "Options" },
+                                  { letter: "W", word: "Will" },
+                                ].map(s => (
+                                  <div key={s.letter} className="flex items-center gap-2">
+                                    <span className="text-[var(--accent)] font-medium text-[11px] w-3">{s.letter}</span>
+                                    <span className="text-[10px] text-muted-foreground w-12">{s.word}</span>
+                                    <div className="flex-1 h-3.5 bg-[var(--bg-muted)] rounded" />
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                            {t.id === "three_field" && (
+                              <>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {["Facts", "Feelings", "Future"].map(label => (
+                                    <div key={label} className="border border-dashed border-border rounded p-2 space-y-1">
+                                      <div className="text-[9px] uppercase tracking-wide text-muted-foreground">{label}</div>
+                                      <div className="h-3 bg-[var(--bg-muted)] rounded" />
+                                      <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                                    </div>
+                                  ))}
                                 </div>
-                                <div className="w-20">
-                                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Owner</div>
-                                  <div className="h-5 bg-[var(--bg-muted)] rounded mt-0.5" />
+                              </>
+                            )}
+                            {t.id === "konsent" && (
+                              <>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Proposal</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" />
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "80%" }} />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Objections?</div>
+                                <div className="flex gap-2 pt-0.5">
+                                  <span className="text-[10px] px-1.5 rounded bg-[var(--status-live-soft)] text-[var(--status-live)]">None</span>
+                                  <span className="text-[10px] px-1.5 rounded bg-[var(--status-warning-soft)] text-[var(--status-warning)]">Concerns</span>
                                 </div>
-                              </div>
-                            </>
-                          )}
-                          {t.id === "actions" && (
-                            <>
-                              {[1, 2, 3].map(i => (
-                                <div key={i} className="flex gap-2 items-center">
-                                  <div className="w-3 h-3 border rounded-sm shrink-0" />
-                                  <div className="flex-1 h-4 bg-[var(--bg-muted)] rounded" />
-                                  <div className="w-14 h-4 bg-[var(--bg-muted)]/60 rounded" />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Decision</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "60%" }} />
+                              </>
+                            )}
+                            {t.id === "systemic_condensing" && (
+                              <>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Map the system</div>
+                                <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                                  {[1,2,3,4].map(i => (
+                                    <div key={i} className="border border-dashed border-border rounded p-1.5">
+                                      <div className="h-3 bg-[var(--bg-muted)] rounded" />
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </>
-                          )}
-                          {t.id === "brainstorm" && (
-                            <>
-                              {[1,2,3,4].map(i => (
-                                <div key={i} className="flex gap-2 items-center">
-                                  <span className="text-[var(--accent)] text-xs">•</span>
-                                  <div className="flex-1 h-4 bg-[var(--bg-muted)] rounded" style={{ width: `${100 - i * 10}%` }} />
-                                </div>
-                              ))}
-                            </>
-                          )}
-                          {t.id === "status" && (
-                            <>
-                              <div>
-                                <span className="text-[10px] uppercase tracking-wide text-[var(--status-live)] font-medium">What's working</span>
-                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
-                              </div>
-                              <div className="pt-1">
-                                <span className="text-[10px] uppercase tracking-wide text-[var(--status-warning)] font-medium">What's not</span>
-                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
-                              </div>
-                              <div className="pt-1">
-                                <span className="text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Next steps</span>
-                                <div className="h-4 bg-[var(--bg-muted)] rounded mt-0.5" />
-                              </div>
-                            </>
-                          )}
-                          {t.id === "notes" && (
-                            <>
-                              <div className="h-3 bg-[var(--bg-muted)] rounded" />
-                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "85%" }} />
-                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
-                              <div className="h-3 bg-[var(--bg-muted)] rounded" style={{ width: "90%" }} />
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Condense pattern</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                              </>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
                 </div>
               </div>
             </div>

@@ -8,19 +8,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
-import type { AgendaType, AgendaItem, Meeting } from "./types"
+import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
 
 // ── Constants ─────────────────────────────────────────────
 const CURRENT_USER = "Lisa Jacob"
 
+// Thinking frameworks / templates available per Goal
+const TEMPLATES: { id: TemplateId; name: string; icon: string }[] = [
+  { id: "none",                name: "No template",               icon: "—" },
+  { id: "basic_info",          name: "Basic Information",         icon: "📋" },
+  { id: "grow",                name: "GROW",                      icon: "🎯" },
+  { id: "three_field",         name: "3 Field Method",            icon: "🗂️" },
+  { id: "konsent",             name: "Konsent Entscheid",         icon: "✅" },
+  { id: "systemic_condensing", name: "Systemisches Kondensieren", icon: "🔍" },
+]
+
+const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
+  information:  ["basic_info"],
+  beratung:     ["grow", "three_field"],
+  entscheidung: ["konsent", "systemic_condensing"],
+  kreativ:      [],
+  ankommen:     [],
+  checkout:     [],
+  brainstorm:   [],
+  sonstige:     [],
+}
+
+const SUGGESTED_TEMPLATE: Record<AgendaType, TemplateId> = {
+  information:  "basic_info",
+  beratung:     "grow",
+  entscheidung: "konsent",
+  kreativ:      "none",
+  ankommen:     "none",
+  checkout:     "none",
+  brainstorm:   "none",
+  sonstige:     "none",
+}
+
 const TYPES: Record<AgendaType, { label: string; color: string }> = {
   information:  { label: "Information", color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
+  beratung:     { label: "Input",       color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
   entscheidung: { label: "Decision",    color: "bg-[var(--accent-soft)] text-[var(--text-on-soft)]" },
-  brainstorm:   { label: "Brainstorm",  color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
-  beratung:     { label: "Advisory",    color: "bg-[var(--bg-muted)] text-[var(--text-secondary)]" },
-  kreativ:      { label: "Creative",    color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
+  kreativ:      { label: "Ideas",       color: "bg-[var(--status-warning-soft)] text-[var(--status-warning)]" },
   ankommen:     { label: "Check-in",    color: "bg-[var(--status-info-soft)] text-[var(--status-info)]" },
   checkout:     { label: "Check-out",   color: "bg-[var(--bg-surface)] text-[var(--text-secondary)]" },
+  brainstorm:   { label: "Brainstorm",  color: "bg-[var(--status-live-soft)] text-[var(--status-live)]" },
   sonstige:     { label: "Other",       color: "bg-[var(--bg-muted)] text-[var(--text-tertiary)]" },
 }
 
@@ -111,10 +143,23 @@ export default function MeetingDetail({
   }
 
   const addRow = () =>
-    setAgenda(a => [...a, { id: ++idCounter, topic: "", type: "information", outcome: "", duration: "", note: "" }])
+    setAgenda(a => {
+      const newItem: AgendaItem = { id: ++idCounter, topic: "", type: "information", template: "basic_info", outcome: "", duration: "", note: "" }
+      // Keep any check-out item as the last agenda point
+      const lastIdx = a.length - 1
+      if (lastIdx >= 0 && a[lastIdx].type === "checkout") {
+        return [...a.slice(0, lastIdx), newItem, a[lastIdx]]
+      }
+      return [...a, newItem]
+    })
 
   const updateRow = useCallback(<K extends keyof AgendaItem>(id: number, key: K, val: AgendaItem[K]) => {
-    setAgenda(a => a.map(r => r.id === id ? { ...r, [key]: val } : r))
+    setAgenda(a => a.map(r => {
+      if (r.id !== id) return r
+      const next = { ...r, [key]: val }
+      if (key === "type") next.template = SUGGESTED_TEMPLATE[val as AgendaType]
+      return next
+    }))
   }, [])
 
   const removeRow = (id: number) => setAgenda(a => a.filter(r => r.id !== id))
@@ -170,26 +215,12 @@ export default function MeetingDetail({
   if (!editing) {
     return (
       <div className="min-h-screen bg-muted/40">
-        <header className="sticky top-0 z-50 bg-[var(--text-primary)] text-[var(--text-on-accent)] h-14 flex items-center px-8 gap-3 shadow-md">
-          <button onClick={onBack} className="text-[var(--text-on-accent)]/50 hover:text-[var(--text-on-accent)] text-sm flex items-center gap-1.5 transition-colors">
-            ← Dashboard
-          </button>
-          <span className="text-xl font-extrabold tracking-tight ml-3">
-            Chair<span className="text-[var(--accent)]">ly</span>
-          </span>
-          <div className="ml-auto flex items-center gap-2">
-            {isOwner && (
-              <Button
-                onClick={() => setEditing(true)}
-                variant="outline"
-                className="h-8 text-sm gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z" />
-                </svg>
-                Edit
-              </Button>
-            )}
+        {/* Light sticky topbar — matches MeetingForm */}
+        <div className="sticky top-0 z-20 bg-[var(--bg-canvas)]/95 backdrop-blur border-b">
+          <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+            <button onClick={onBack} className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1.5 transition-colors">
+              ← Dashboard
+            </button>
             {isOwner && onStart && !meeting.isDraft && (
               <Button
                 onClick={onStart}
@@ -200,7 +231,7 @@ export default function MeetingDetail({
               </Button>
             )}
           </div>
-        </header>
+        </div>
 
         <div className="max-w-3xl mx-auto py-10 px-4 space-y-5">
 
@@ -312,6 +343,22 @@ export default function MeetingDetail({
             </CardContent>
           </Card>
 
+          {/* Edit button — bottom right (owner only) */}
+          {isOwner && (
+            <div className="flex justify-end pb-4">
+              <Button
+                onClick={() => setEditing(true)}
+                variant="outline"
+                className="h-9 text-sm gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z" />
+                </svg>
+                Edit meeting
+              </Button>
+            </div>
+          )}
+
           {!isOwner && (
             <p className="text-xs text-center text-muted-foreground pb-4">
               Only {meeting.owner} can edit this meeting.
@@ -327,30 +374,25 @@ export default function MeetingDetail({
   // ════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="sticky top-0 z-50 bg-[var(--text-primary)] text-[var(--text-on-accent)] h-14 flex items-center px-8 gap-3 shadow-md">
-        <button onClick={onBack} className="text-[var(--text-on-accent)]/50 hover:text-[var(--text-on-accent)] text-sm flex items-center gap-1.5 transition-colors">
-          ← Dashboard
-        </button>
-        <span className="text-xl font-extrabold tracking-tight ml-3">
-          Chair<span className="text-[var(--accent)]">ly</span>
-        </span>
-        <span className="text-[var(--text-on-accent)]/40 text-sm ml-1">— Edit meeting</span>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            onClick={handleCancel}
-            className="h-8 text-sm text-[var(--text-on-accent)]/70 hover:text-[var(--text-on-accent)] hover:bg-[var(--bg-card)]/10"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm"
-          >
-            Save changes
-          </Button>
+      {/* Light sticky topbar — consistent with view mode and create form */}
+      <div className="sticky top-0 z-20 bg-[var(--bg-canvas)]/95 backdrop-blur border-b">
+        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+          <button onClick={onBack} className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1.5 transition-colors">
+            ← Dashboard
+          </button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleCancel} className="h-8 text-sm">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm"
+            >
+              Save changes
+            </Button>
+          </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-3xl mx-auto py-10 px-4 space-y-5">
 
@@ -385,10 +427,6 @@ export default function MeetingDetail({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-[20px_24px_1fr_150px_1fr_72px_28px] gap-2 px-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              <span /><span>#</span><span>Topic</span><span>Type</span><span>Outcome</span><span>Min</span><span />
-            </div>
-
             {agenda.map((item, idx) => (
               <div
                 key={item.id}
@@ -397,38 +435,134 @@ export default function MeetingDetail({
                 onDragEnter={() => handleDragEnter(item.id)}
                 onDragEnd={handleDragEnd}
                 onDragOver={e => e.preventDefault()}
-                className={`grid grid-cols-[20px_24px_1fr_150px_1fr_72px_28px] gap-2 items-center border rounded-lg p-2 transition-all ${
+                className={`border rounded-lg p-4 transition-all space-y-3 ${
                   draggingId === item.id
                     ? "opacity-40 bg-[var(--accent-soft)] border-[var(--accent-soft-border)]"
-                    : "bg-muted/50 hover:border-[var(--accent-soft-border)]"
+                    : "bg-muted/40 hover:border-[var(--accent-soft-border)]"
                 }`}
               >
-                <span className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground flex items-center justify-center select-none">⠿</span>
-                <span className="text-xs font-bold text-muted-foreground text-center">{idx + 1}</span>
-                <Input
-                  className="h-8 text-sm" placeholder="Topic…"
-                  value={item.topic} onChange={e => updateRow(item.id, "topic", e.target.value)}
-                />
-                <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
-                  <SelectTrigger className="h-8 text-xs w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(TYPES) as AgendaType[]).map(t => (
-                      <SelectItem key={t} value={t} className="text-xs">{TYPES[t].label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  className="h-8 text-sm" placeholder="Expected outcome…"
-                  value={item.outcome} onChange={e => updateRow(item.id, "outcome", e.target.value)}
-                />
-                <Input
-                  className="h-8 text-sm text-center" type="number" min={1} max={180} placeholder="min"
-                  value={item.duration} onChange={e => updateRow(item.id, "duration", e.target.value)}
-                />
-                <button
-                  type="button" onClick={() => removeRow(item.id)}
-                  className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors text-lg leading-none"
-                >×</button>
+                {/* Header row: drag handle + big number + delete */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="cursor-grab active:cursor-grabbing text-[var(--text-tertiary)] hover:text-[var(--text-primary)] select-none text-2xl leading-none transition-colors" title="Drag to reorder">⠿</span>
+                    <span className="text-2xl font-medium text-[var(--text-primary)] leading-none">{idx + 1}.</span>
+                  </div>
+                  <button
+                    type="button" onClick={() => removeRow(item.id)}
+                    className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors text-lg leading-none"
+                    title="Remove agenda item"
+                  >×</button>
+                </div>
+
+                {/* Topic */}
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Topic</Label>
+                  <Input className="h-10 text-sm" placeholder="What will be discussed?"
+                    value={item.topic} onChange={e => updateRow(item.id, "topic", e.target.value)} />
+                </div>
+
+                {(() => {
+                  const isCheckin   = item.type === "ankommen"
+                  const isCheckout  = item.type === "checkout"
+                  const isGenerator = isCheckin || isCheckout
+                  const generatorLabel = isCheckin ? "Checkin Generator" : "Retro Generator"
+                  const generatorHint  = "spontaneously generated during the meeting"
+
+                  const GoalSelect = (
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Goal</Label>
+                      <Select value={item.type} onValueChange={v => updateRow(item.id, "type", v as AgendaType)}>
+                        <SelectTrigger className="!h-10 text-sm w-full">
+                          <SelectValue>{TYPES[item.type].label}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Object.keys(TYPES) as AgendaType[])
+                            .filter(t => t !== "brainstorm")
+                            .map(t => (
+                              <SelectItem key={t} value={t} className="text-sm">{TYPES[t].label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )
+
+                  const DurationInput = (
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Duration</Label>
+                      <div className="flex items-center gap-1 border rounded-md px-2 bg-background h-10 focus-within:ring-2 focus-within:ring-ring">
+                        <Input
+                          className="h-9 text-sm text-right border-0 shadow-none focus-visible:ring-0 p-0 min-w-0"
+                          type="number" min={1} max={180} placeholder="0"
+                          value={item.duration} onChange={e => updateRow(item.id, "duration", e.target.value)}
+                        />
+                        <span className="text-xs text-muted-foreground shrink-0">min</span>
+                      </div>
+                    </div>
+                  )
+
+                  if (isGenerator) {
+                    return (
+                      <>
+                        <div className="grid grid-cols-[1fr_120px] gap-3">
+                          {GoalSelect}
+                          {DurationInput}
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer pt-0.5">
+                          <input
+                            type="checkbox"
+                            checked={item.useGenerator ?? true}
+                            onChange={e => updateRow(item.id, "useGenerator", e.target.checked)}
+                            className="accent-[var(--accent)] w-3.5 h-3.5 shrink-0 cursor-pointer"
+                          />
+                          <span>
+                            <span className="text-[var(--text-secondary)] font-medium">✨ {generatorLabel}</span>
+                            <span className="ml-1.5">— {generatorHint}</span>
+                          </span>
+                        </label>
+                      </>
+                    )
+                  }
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-[1fr_120px] gap-3">
+                        {GoalSelect}
+                        {DurationInput}
+                      </div>
+                      <div className="border-l-2 border-[var(--border-default)] pl-3 space-y-1">
+                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Template <span className="text-[var(--text-tertiary)] normal-case font-normal ml-0.5">— filtered by goal</span>
+                        </Label>
+                        <Select value={item.template ?? "none"} onValueChange={v => updateRow(item.id, "template", v as TemplateId)}>
+                          <SelectTrigger className="!h-10 text-sm w-full">
+                            <SelectValue>
+                              {(() => {
+                                const t = TEMPLATES.find(x => x.id === (item.template ?? "none"))
+                                return t ? <><span className="mr-1.5">{t.icon}</span>{t.name}</> : null
+                              })()}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TEMPLATES
+                              .filter(t => t.id === "none" || TEMPLATES_BY_GOAL[item.type]?.includes(t.id))
+                              .map(t => (
+                                <SelectItem key={t.id} value={t.id} className="text-sm">
+                                  <span className="mr-1.5">{t.icon}</span>{t.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Outcome <span className="text-[var(--text-tertiary)] normal-case font-normal ml-0.5">recommended</span>
+                        </Label>
+                        <Input className="h-10 text-sm" placeholder="e.g. We agreed on a tool"
+                          value={item.outcome} onChange={e => updateRow(item.id, "outcome", e.target.value)} />
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
             ))}
 

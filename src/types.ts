@@ -2,13 +2,22 @@ export type AgendaType =
   | "information" | "entscheidung" | "brainstorm"
   | "beratung" | "kreativ" | "ankommen" | "checkout" | "sonstige"
 
-export type TemplateId = "none" | "decision" | "actions" | "brainstorm" | "status" | "notes"
+export type TemplateId =
+  | "none"
+  | "basic_info"            // for Information goal
+  | "grow"                  // for Input goal
+  | "three_field"           // for Input goal
+  | "konsent"               // for Decision goal
+  | "systemic_condensing"   // for Decision goal
+  // legacy / live capture templates (kept for backward compat)
+  | "decision" | "actions" | "brainstorm" | "status" | "notes"
 
 export interface AgendaItem {
   id: number
   topic: string
   type: AgendaType
   template?: TemplateId
+  useGenerator?: boolean      // ✨ check-in / retro generator toggle for ankommen / checkout types
   outcome: string
   duration: string
   note: string
