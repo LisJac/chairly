@@ -70,6 +70,246 @@ export const MOCK_MEETINGS: Meeting[] = [
       { id: 3, topic: "Action recommendations", type: "entscheidung", duration: "15", outcome: "", note: "" },
     ],
   },
+
+  // ── 20 upcoming meetings · June 2 – June 22, 2026 (next 3 weeks) ──
+
+  // Week 1: June 2 – June 8
+  {
+    id: 100, title: "Weekly Team Sync", date: "2026-06-02", startTime: "10:00", endTime: "10:30",
+    owner: "Sara Fischer", participants: ["lisa.jacob@chairly.app", "max.koehler@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Align on weekly priorities", desiredOutcome: "Everyone clear on this week's focus",
+    link: "https://zoom.us/j/123456789",
+    agenda: [
+      { id: 1, topic: "Check-in",        type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Status round",    type: "information",  duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "Blockers",        type: "beratung",     duration: "10", outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 101, title: "1:1 Lisa & Max", date: "2026-06-02", startTime: "14:00", endTime: "14:30",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app"],
+    intention: "Catch up on personal goals & blockers", desiredOutcome: "Clear next steps",
+    agenda: [
+      { id: 1, topic: "Check-in",         type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Career & goals",   type: "beratung",     duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Wrap up",          type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 102, title: "Sprint Planning", date: "2026-06-03", startTime: "10:00", endTime: "11:30",
+    owner: "Max Köhler", participants: ["lisa.jacob@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Plan next sprint scope", desiredOutcome: "Sprint backlog finalized",
+    agenda: [
+      { id: 1, topic: "Warm Up",          type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Review backlog",   type: "information",  duration: "30", outcome: "", note: "" },
+      { id: 3, topic: "Story estimation", type: "beratung",     duration: "30", outcome: "", note: "" },
+      { id: 4, topic: "Commit & sign-off",type: "entscheidung", duration: "15", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",          type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 103, title: "Customer Feedback Review", date: "2026-06-04", startTime: "11:00", endTime: "12:00",
+    owner: "Anna Müller", participants: ["lisa.jacob@chairly.app", "sara.fischer@chairly.app"],
+    intention: "Review latest customer feedback batch", desiredOutcome: "Top 3 themes identified",
+    agenda: [
+      { id: 1, topic: "Check-in",            type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Feedback walkthrough",type: "information",  duration: "25", outcome: "", note: "" },
+      { id: 3, topic: "Theme clustering",    type: "kreativ",      duration: "20", outcome: "", note: "" },
+      { id: 4, topic: "Wrap Up",             type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 104, title: "Hiring Sync — Senior Designer", date: "2026-06-04", startTime: "15:00", endTime: "15:45",
+    owner: "Lisa Jacob", participants: ["sara.fischer@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Align on candidate pipeline", desiredOutcome: "Shortlist for next round",
+    agenda: [
+      { id: 1, topic: "Check-in",           type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Pipeline status",    type: "information",  duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "Shortlist decision", type: "entscheidung", duration: "20", outcome: "", note: "" },
+      { id: 4, topic: "Wrap Up",            type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 105, title: "Friday Demo", date: "2026-06-05", startTime: "16:00", endTime: "17:00",
+    owner: "Tom Becker", participants: ["lisa.jacob@chairly.app", "max.koehler@chairly.app", "sara.fischer@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Show what was built this week", desiredOutcome: "Team celebrates wins & gives feedback",
+    link: "https://meet.google.com/demo-xyz-abc",
+    agenda: [
+      { id: 1, topic: "Warm Up",         type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Engineering demo",type: "information",  duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Design demo",     type: "information",  duration: "20", outcome: "", note: "" },
+      { id: 4, topic: "Feedback round",  type: "beratung",     duration: "10", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",         type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 106, title: "Product Strategy Brainstorm", date: "2026-06-08", startTime: "10:00", endTime: "11:30",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app", "sara.fischer@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Generate ideas for H2 strategy", desiredOutcome: "5 strategic directions to explore",
+    agenda: [
+      { id: 1, topic: "Warm Up",         type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Context setting", type: "information",  duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "Idea generation", type: "kreativ",      duration: "40", outcome: "", note: "" },
+      { id: 4, topic: "Cluster & vote",  type: "entscheidung", duration: "25", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",         type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+
+  // Week 2: June 9 – June 15
+  {
+    id: 107, title: "Weekly Team Sync", date: "2026-06-09", startTime: "10:00", endTime: "10:30",
+    owner: "Sara Fischer", participants: ["lisa.jacob@chairly.app", "max.koehler@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Align on weekly priorities", desiredOutcome: "Everyone clear on this week's focus",
+    link: "https://zoom.us/j/123456789",
+    agenda: [
+      { id: 1, topic: "Check-in",     type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Status round", type: "information",  duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "Blockers",     type: "beratung",     duration: "10", outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 108, title: "Q3 Goal Setting Workshop", date: "2026-06-10", startTime: "09:30", endTime: "12:00",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app", "sara.fischer@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Define Q3 objectives together", desiredOutcome: "3-5 OKRs locked in",
+    agenda: [
+      { id: 1, topic: "Warm Up",                type: "ankommen",     duration: "10", outcome: "", note: "" },
+      { id: 2, topic: "Q2 retrospective",       type: "beratung",     duration: "30", outcome: "", note: "" },
+      { id: 3, topic: "Q3 themes brainstorm",   type: "kreativ",      duration: "40", outcome: "", note: "" },
+      { id: 4, topic: "OKR drafting",           type: "entscheidung", duration: "50", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",                type: "checkout",     duration: "10", outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 109, title: "Design Critique", date: "2026-06-10", startTime: "14:00", endTime: "15:00",
+    owner: "Anna Müller", participants: ["sara.fischer@chairly.app", "lisa.jacob@chairly.app"],
+    intention: "Get feedback on new dashboard mocks", desiredOutcome: "Clear direction for v2",
+    agenda: [
+      { id: 1, topic: "Check-in",         type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Walkthrough mocks",type: "information",  duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Critique round",   type: "beratung",     duration: "25", outcome: "", note: "" },
+      { id: 4, topic: "Wrap Up",          type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 110, title: "1:1 Lisa & Sara", date: "2026-06-11", startTime: "11:00", endTime: "11:30",
+    owner: "Lisa Jacob", participants: ["sara.fischer@chairly.app"],
+    intention: "Check in on team health", desiredOutcome: "Clear action items",
+    agenda: [
+      { id: 1, topic: "Check-in",   type: "ankommen", duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Team health",type: "beratung", duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Wrap Up",    type: "checkout", duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 111, title: "Engineering Architecture Review", date: "2026-06-11", startTime: "15:00", endTime: "16:30",
+    owner: "Tom Becker", participants: ["max.koehler@chairly.app", "lisa.jacob@chairly.app"],
+    intention: "Review proposed event-driven architecture", desiredOutcome: "Go/no-go decision",
+    agenda: [
+      { id: 1, topic: "Warm Up",            type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Architecture deck",  type: "information",  duration: "30", outcome: "", note: "" },
+      { id: 3, topic: "Q&A and trade-offs", type: "beratung",     duration: "30", outcome: "", note: "" },
+      { id: 4, topic: "Decision",           type: "entscheidung", duration: "20", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",            type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 112, title: "Sales Pipeline Review", date: "2026-06-12", startTime: "13:00", endTime: "14:00",
+    owner: "Max Köhler", participants: ["lisa.jacob@chairly.app"],
+    intention: "Review pipeline and forecast", desiredOutcome: "Updated forecast for the board",
+    agenda: [
+      { id: 1, topic: "Check-in",          type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Pipeline overview", type: "information",  duration: "25", outcome: "", note: "" },
+      { id: 3, topic: "Forecast scenarios",type: "entscheidung", duration: "25", outcome: "", note: "" },
+      { id: 4, topic: "Wrap Up",           type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 113, title: "All Hands", date: "2026-06-15", startTime: "16:00", endTime: "17:00",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app", "sara.fischer@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Monthly company update", desiredOutcome: "Whole team aligned & energized",
+    link: "https://zoom.us/j/all-hands",
+    agenda: [
+      { id: 1, topic: "Warm Up",       type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Company update",type: "information",  duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Wins & shoutouts",type: "information",duration: "10", outcome: "", note: "" },
+      { id: 4, topic: "Open Q&A",      type: "beratung",     duration: "20", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",       type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+
+  // Week 3: June 16 – June 22
+  {
+    id: 114, title: "Weekly Team Sync", date: "2026-06-16", startTime: "10:00", endTime: "10:30",
+    owner: "Sara Fischer", participants: ["lisa.jacob@chairly.app", "max.koehler@chairly.app", "tom.becker@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Align on weekly priorities", desiredOutcome: "Everyone clear on this week's focus",
+    link: "https://zoom.us/j/123456789",
+    agenda: [
+      { id: 1, topic: "Check-in",     type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Status round", type: "information",  duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "Blockers",     type: "beratung",     duration: "10", outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 115, title: "Pricing Strategy Decision", date: "2026-06-17", startTime: "14:00", endTime: "15:30",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Decide on new pricing tiers", desiredOutcome: "Final pricing locked",
+    agenda: [
+      { id: 1, topic: "Warm Up",            type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Market analysis",    type: "information",  duration: "20", outcome: "", note: "" },
+      { id: 3, topic: "Options review",     type: "beratung",     duration: "30", outcome: "", note: "" },
+      { id: 4, topic: "Konsent decision",   type: "entscheidung", duration: "25", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",            type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 116, title: "Onboarding — New Hire", date: "2026-06-18", startTime: "10:00", endTime: "10:45",
+    owner: "Sara Fischer", participants: ["lisa.jacob@chairly.app"],
+    intention: "Onboard new designer", desiredOutcome: "Clear first-week plan",
+    agenda: [
+      { id: 1, topic: "Welcome",            type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Team intro",         type: "information",  duration: "10", outcome: "", note: "" },
+      { id: 3, topic: "Goals & expectations",type: "information", duration: "15", outcome: "", note: "" },
+      { id: 4, topic: "Questions",          type: "beratung",     duration: "10", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",            type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 117, title: "User Interview Synthesis", date: "2026-06-18", startTime: "14:00", endTime: "15:30",
+    owner: "Anna Müller", participants: ["sara.fischer@chairly.app", "lisa.jacob@chairly.app"],
+    intention: "Synthesize 10 user interviews", desiredOutcome: "Top insights doc finalized",
+    agenda: [
+      { id: 1, topic: "Check-in",            type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Interview highlights",type: "information",  duration: "30", outcome: "", note: "" },
+      { id: 3, topic: "Theme clustering",    type: "kreativ",      duration: "30", outcome: "", note: "" },
+      { id: 4, topic: "Top insights decision",type:"entscheidung", duration: "20", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",             type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 118, title: "Engineering Retro", date: "2026-06-19", startTime: "15:00", endTime: "16:00",
+    owner: "Tom Becker", participants: ["max.koehler@chairly.app"],
+    intention: "Reflect on the sprint", desiredOutcome: "3 concrete improvements for next sprint",
+    agenda: [
+      { id: 1, topic: "Check-in",          type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "What went well",    type: "beratung",     duration: "15", outcome: "", note: "" },
+      { id: 3, topic: "What didn't",       type: "beratung",     duration: "15", outcome: "", note: "" },
+      { id: 4, topic: "Action items",      type: "entscheidung", duration: "20", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",           type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
+  {
+    id: 119, title: "Customer Advisory Board", date: "2026-06-22", startTime: "16:00", endTime: "17:30",
+    owner: "Lisa Jacob", participants: ["max.koehler@chairly.app", "anna.mueller@chairly.app"],
+    intention: "Gather product input from key customers", desiredOutcome: "Roadmap validated with 3 customer signals",
+    link: "https://meet.google.com/cab-001",
+    agenda: [
+      { id: 1, topic: "Warm Up",         type: "ankommen",     duration: "5",  outcome: "", note: "" },
+      { id: 2, topic: "Roadmap preview", type: "information",  duration: "30", outcome: "", note: "" },
+      { id: 3, topic: "Customer input",  type: "beratung",     duration: "40", outcome: "", note: "" },
+      { id: 4, topic: "Next steps",      type: "entscheidung", duration: "10", outcome: "", note: "" },
+      { id: 5, topic: "Wrap Up",         type: "checkout",     duration: "5",  outcome: "", note: "" },
+    ],
+  },
 ]
 
 export const MOCK_TODOS: Todo[] = [

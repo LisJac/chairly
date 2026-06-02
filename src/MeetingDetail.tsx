@@ -374,23 +374,12 @@ export default function MeetingDetail({
   // ════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-muted/40">
-      {/* Light sticky topbar — consistent with view mode and create form */}
+      {/* Light sticky topbar — just back arrow; action buttons live at the form bottom */}
       <div className="sticky top-0 z-20 bg-[var(--bg-canvas)]/95 backdrop-blur border-b">
-        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-6 py-3">
           <button onClick={onBack} className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1.5 transition-colors">
             ← Dashboard
           </button>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={handleCancel} className="h-8 text-sm">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--text-on-accent)] h-8 text-sm"
-            >
-              Save changes
-            </Button>
-          </div>
         </div>
       </div>
 

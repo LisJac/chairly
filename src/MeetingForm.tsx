@@ -12,13 +12,13 @@ import { Separator } from "@/components/ui/separator"
 import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
 
 // Thinking frameworks / templates available per Goal
-const TEMPLATES: { id: TemplateId; name: string; icon: string }[] = [
-  { id: "none",                name: "No template",               icon: "—" },
-  { id: "basic_info",          name: "Basic Information",         icon: "📋" },
-  { id: "grow",                name: "GROW",                      icon: "🎯" },
-  { id: "three_field",         name: "3 Field Method",            icon: "🗂️" },
-  { id: "konsent",             name: "Konsent Entscheid",         icon: "✅" },
-  { id: "systemic_condensing", name: "Systemisches Kondensieren", icon: "🔍" },
+const TEMPLATES: { id: TemplateId; name: string; icon: string; persona?: string; description?: string }[] = [
+  { id: "none",                name: "No template",         icon: "—" },
+  { id: "basic_info",          name: "Update",              icon: "📋", persona: "Sigrid",    description: "Alle auf denselben Stand bringen" },
+  { id: "grow",                name: "GROW",                icon: "🎯", persona: "Kurt",      description: "Ziel und nächste Schritte klären" },
+  { id: "three_field",         name: "3 Felder",            icon: "🗂️", persona: "Frieda",    description: "Thema gemeinsam durchdenken (explorieren)" },
+  { id: "konsent",             name: "Konsent-Entscheid",   icon: "✅", persona: "Werner",    description: "Entscheidung ohne Blockaden" },
+  { id: "systemic_condensing", name: "Syst. Konsensieren",  icon: "🔍", persona: "Hildegard", description: "Den Vorschlag mit dem wenigsten Widerstand finden" },
 ]
 
 // Which templates are valid for which Goal
@@ -710,45 +710,46 @@ export default function MeetingForm({
               </div>
             </div>
 
-            {showValidation && invalidItems.length > 0 && (
-              <div className="text-xs text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2.5 font-medium flex items-start gap-2">
-                <span className="shrink-0">⚠️</span>
-                <span>
-                  {invalidItems.length} agenda item{invalidItems.length !== 1 ? "s" : ""} {invalidItems.length === 1 ? "has" : "have"} no duration. Please enter a time for each item before sending the meeting.
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <p className="text-xs text-muted-foreground italic">
-                ✉️ Creating the meeting will invite all participants.
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" type="button" onClick={() => onSaveDraft(buildMeeting())}>
-                  Save as draft
-                </Button>
-                <Button
-                  type="button"
-                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)]"
-                  onClick={() => {
-                    if (invalidItems.length > 0) {
-                      setShowValidation(true)
-                      // Scroll to the first invalid item
-                      setTimeout(() => {
-                        const firstInvalid = document.querySelector('.border-destructive')
-                        firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" })
-                      }, 0)
-                      return
-                    }
-                    onSave(buildMeeting())
-                  }}
-                >
-                  Create meeting
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
+
+        {/* ── Footer: validation + action buttons (outside any card) ── */}
+        {showValidation && invalidItems.length > 0 && (
+          <div className="text-xs text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2.5 font-medium flex items-start gap-2">
+            <span className="shrink-0">⚠️</span>
+            <span>
+              {invalidItems.length} agenda item{invalidItems.length !== 1 ? "s" : ""} {invalidItems.length === 1 ? "has" : "have"} no duration. Please enter a time for each item before sending the meeting.
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <p className="text-xs text-muted-foreground italic">
+            ✉️ Creating the meeting will invite all participants.
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" type="button" onClick={() => onSaveDraft(buildMeeting())}>
+              Save as draft
+            </Button>
+            <Button
+              type="button"
+              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)]"
+              onClick={() => {
+                if (invalidItems.length > 0) {
+                  setShowValidation(true)
+                  setTimeout(() => {
+                    const firstInvalid = document.querySelector('.border-destructive')
+                    firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" })
+                  }, 0)
+                  return
+                }
+                onSave(buildMeeting())
+              }}
+            >
+              Create meeting
+            </Button>
+          </div>
+        </div>
         </div>
 
         {/* ── Save-as-draft prompt ── */}
