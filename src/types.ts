@@ -4,11 +4,12 @@ export type AgendaType =
 
 export type TemplateId =
   | "none"
-  | "basic_info"            // for Information goal
-  | "grow"                  // for Input goal
-  | "three_field"           // for Input goal
-  | "konsent"               // for Decision goal
-  | "systemic_condensing"   // for Decision goal
+  | "basic_info"            // Kurzes Update — for Information goal
+  | "question_topic"        // Frage & Thema — for Information goal
+  | "grow"                  // Kurt — for Input goal
+  | "three_field"           // Offener Austausch — for Input goal
+  | "konsent"               // Konsent-Entscheid — for Decision goal
+  | "systemic_condensing"   // Systemisches Konsensieren — for Decision goal
   // legacy / live capture templates (kept for backward compat)
   | "decision" | "actions" | "brainstorm" | "status" | "notes"
 

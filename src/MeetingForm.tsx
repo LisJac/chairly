@@ -10,20 +10,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
+import TemplateIcon from "./TemplateIcon"
 
 // Thinking frameworks / templates available per Goal
-const TEMPLATES: { id: TemplateId; name: string; icon: string; persona?: string; description?: string }[] = [
-  { id: "none",                name: "No template",         icon: "—" },
-  { id: "basic_info",          name: "Update",              icon: "📋", persona: "Sigrid",    description: "Alle auf denselben Stand bringen" },
-  { id: "grow",                name: "GROW",                icon: "🎯", persona: "Kurt",      description: "Ziel und nächste Schritte klären" },
-  { id: "three_field",         name: "3 Felder",            icon: "🗂️", persona: "Frieda",    description: "Thema gemeinsam durchdenken (explorieren)" },
-  { id: "konsent",             name: "Konsent-Entscheid",   icon: "✅", persona: "Werner",    description: "Entscheidung ohne Blockaden" },
-  { id: "systemic_condensing", name: "Syst. Konsensieren",  icon: "🔍", persona: "Hildegard", description: "Den Vorschlag mit dem wenigsten Widerstand finden" },
+// `name` = persona name (shown bold), `oldName` = technical term shown in parens
+const TEMPLATES: { id: TemplateId; name: string; oldName?: string; description?: string }[] = [
+  { id: "none",                name: "No template" },
+  { id: "basic_info",          name: "Sigrid",        oldName: "Kurzes Update",             description: "Informieren ohne Diskussion" },
+  { id: "question_topic",      name: "Frage & Thema",                                       description: "Gemeinsamer Startpunkt" },
+  { id: "grow",                name: "Kurt",          oldName: "GROW",                      description: "Ziel & nächste Schritte klären" },
+  { id: "three_field",         name: "Frieda",        oldName: "Offener Austausch",         description: "Verstehen, öffnen, entscheiden" },
+  { id: "konsent",             name: "Werner",        oldName: "Konsent-Entscheid",         description: "Vorschlag ohne Einwand annehmen" },
+  { id: "systemic_condensing", name: "Hildegard",     oldName: "Systemisches Konsensieren", description: "Geringsten Widerstand finden" },
 ]
 
 // Which templates are valid for which Goal
 const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
-  information:  ["basic_info"],
+  information:  ["basic_info", "question_topic"],
   beratung:     ["grow", "three_field"],          // Input
   entscheidung: ["konsent", "systemic_condensing"], // Decision
   kreativ:      [],                                // Ideas (Brainstorm) — empty
@@ -429,7 +432,16 @@ export default function MeetingForm({
                               <SelectValue>
                                 {(() => {
                                   const t = TEMPLATES.find(x => x.id === (item.template ?? "none"))
-                                  return t ? <><span className="mr-1.5">{t.icon}</span>{t.name}</> : null
+                                  if (!t) return null
+                                  return (
+                                    <span className="flex items-center gap-2">
+                                      <TemplateIcon id={t.id} size={22} />
+                                      <span className="font-medium">{t.name}</span>
+                                      {t.oldName && (
+                                        <span className="text-[var(--text-tertiary)]">({t.oldName})</span>
+                                      )}
+                                    </span>
+                                  )
                                 })()}
                               </SelectValue>
                             </SelectTrigger>
@@ -437,8 +449,23 @@ export default function MeetingForm({
                               {TEMPLATES
                                 .filter(t => t.id === "none" || TEMPLATES_BY_GOAL[item.type]?.includes(t.id))
                                 .map(t => (
-                                  <SelectItem key={t.id} value={t.id} className="text-sm">
-                                    <span className="mr-1.5">{t.icon}</span>{t.name}
+                                  <SelectItem key={t.id} value={t.id} className="text-sm py-2">
+                                    <div className="flex items-center gap-2.5">
+                                      <TemplateIcon id={t.id} size={28} />
+                                      <div className="flex flex-col gap-0.5 min-w-0">
+                                        <div className="flex items-baseline gap-1.5">
+                                          <span className="font-medium">{t.name}</span>
+                                          {t.oldName && (
+                                            <span className="text-[var(--text-tertiary)] text-xs">({t.oldName})</span>
+                                          )}
+                                        </div>
+                                        {t.description && (
+                                          <span className="text-xs italic text-[var(--text-secondary)]">
+                                            {t.description}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </SelectItem>
                                 ))}
                             </SelectContent>
@@ -788,10 +815,22 @@ export default function MeetingForm({
                           className={`text-left border rounded-lg p-4 transition-all hover:border-[var(--accent)] hover:shadow-sm
                             ${isSelected ? "border-[var(--accent)] bg-[var(--accent-soft)]/30 ring-2 ring-[var(--accent)]/20" : "border-border bg-[var(--bg-card)]"}`}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">{t.icon}</span>
-                            <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
-                            {isSelected && <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Selected</span>}
+                          <div className="mb-3 flex items-start gap-2.5">
+                            <TemplateIcon id={t.id} size={36} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline gap-1.5 flex-wrap">
+                                <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
+                                {t.oldName && (
+                                  <span className="text-xs text-[var(--text-tertiary)]">({t.oldName})</span>
+                                )}
+                                {isSelected && <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--accent)] font-medium">Selected</span>}
+                              </div>
+                              {t.description && (
+                                <p className="text-xs italic text-[var(--text-secondary)] mt-0.5">
+                                  {t.description}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           {/* Preview content */}
                           <div className="bg-[var(--bg-canvas)] border border-dashed border-border rounded-md p-3 space-y-1.5 text-xs">
@@ -800,12 +839,20 @@ export default function MeetingForm({
                             )}
                             {t.id === "basic_info" && (
                               <>
-                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Key info</div>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Was teile ich?</div>
                                 <div className="h-4 bg-[var(--bg-muted)] rounded" />
-                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "80%" }} />
-                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Why it matters</div>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Hintergrund</div>
                                 <div className="h-4 bg-[var(--bg-muted)] rounded" />
-                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Open questions</div>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Nächste Schritte</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                              </>
+                            )}
+                            {t.id === "question_topic" && (
+                              <>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Leitfrage</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Thema</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" />
                                 <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "60%" }} />
                               </>
                             )}

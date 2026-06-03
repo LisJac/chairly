@@ -9,22 +9,24 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import type { AgendaType, AgendaItem, Meeting, TemplateId } from "./types"
+import TemplateIcon from "./TemplateIcon"
 
 // ── Constants ─────────────────────────────────────────────
 const CURRENT_USER = "Lisa Jacob"
 
 // Thinking frameworks / templates available per Goal
-const TEMPLATES: { id: TemplateId; name: string; icon: string }[] = [
-  { id: "none",                name: "No template",               icon: "—" },
-  { id: "basic_info",          name: "Basic Information",         icon: "📋" },
-  { id: "grow",                name: "GROW",                      icon: "🎯" },
-  { id: "three_field",         name: "3 Field Method",            icon: "🗂️" },
-  { id: "konsent",             name: "Konsent Entscheid",         icon: "✅" },
-  { id: "systemic_condensing", name: "Systemisches Kondensieren", icon: "🔍" },
+const TEMPLATES: { id: TemplateId; name: string; oldName?: string; description?: string }[] = [
+  { id: "none",                name: "No template" },
+  { id: "basic_info",          name: "Sigrid",        oldName: "Kurzes Update",             description: "Informieren ohne Diskussion" },
+  { id: "question_topic",      name: "Frage & Thema",                                       description: "Gemeinsamer Startpunkt" },
+  { id: "grow",                name: "Kurt",          oldName: "GROW",                      description: "Ziel & nächste Schritte klären" },
+  { id: "three_field",         name: "Frieda",        oldName: "Offener Austausch",         description: "Verstehen, öffnen, entscheiden" },
+  { id: "konsent",             name: "Werner",        oldName: "Konsent-Entscheid",         description: "Vorschlag ohne Einwand annehmen" },
+  { id: "systemic_condensing", name: "Hildegard",     oldName: "Systemisches Konsensieren", description: "Geringsten Widerstand finden" },
 ]
 
 const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
-  information:  ["basic_info"],
+  information:  ["basic_info", "question_topic"],
   beratung:     ["grow", "three_field"],
   entscheidung: ["konsent", "systemic_condensing"],
   kreativ:      [],
@@ -527,7 +529,16 @@ export default function MeetingDetail({
                             <SelectValue>
                               {(() => {
                                 const t = TEMPLATES.find(x => x.id === (item.template ?? "none"))
-                                return t ? <><span className="mr-1.5">{t.icon}</span>{t.name}</> : null
+                                if (!t) return null
+                                return (
+                                  <span className="flex items-center gap-2">
+                                    <TemplateIcon id={t.id} size={22} />
+                                    <span className="font-medium">{t.name}</span>
+                                    {t.oldName && (
+                                      <span className="text-[var(--text-tertiary)]">({t.oldName})</span>
+                                    )}
+                                  </span>
+                                )
                               })()}
                             </SelectValue>
                           </SelectTrigger>
@@ -535,8 +546,23 @@ export default function MeetingDetail({
                             {TEMPLATES
                               .filter(t => t.id === "none" || TEMPLATES_BY_GOAL[item.type]?.includes(t.id))
                               .map(t => (
-                                <SelectItem key={t.id} value={t.id} className="text-sm">
-                                  <span className="mr-1.5">{t.icon}</span>{t.name}
+                                <SelectItem key={t.id} value={t.id} className="text-sm py-2">
+                                  <div className="flex items-center gap-2.5">
+                                    <TemplateIcon id={t.id} size={28} />
+                                    <div className="flex flex-col gap-0.5 min-w-0">
+                                      <div className="flex items-baseline gap-1.5">
+                                        <span className="font-medium">{t.name}</span>
+                                        {t.oldName && (
+                                          <span className="text-[var(--text-tertiary)] text-xs">({t.oldName})</span>
+                                        )}
+                                      </div>
+                                      {t.description && (
+                                        <span className="text-xs italic text-[var(--text-secondary)]">
+                                          {t.description}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </SelectItem>
                               ))}
                           </SelectContent>
