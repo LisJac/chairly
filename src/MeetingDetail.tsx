@@ -17,18 +17,18 @@ const CURRENT_USER = "Lisa Jacob"
 // Thinking frameworks / templates available per Goal
 const TEMPLATES: { id: TemplateId; name: string; oldName?: string; description?: string }[] = [
   { id: "none",                name: "No template" },
-  { id: "basic_info",          name: "Sigrid",        oldName: "Kurzes Update",             description: "Informieren ohne Diskussion" },
-  { id: "question_topic",      name: "Frage & Thema",                                       description: "Gemeinsamer Startpunkt" },
-  { id: "grow",                name: "Kurt",          oldName: "GROW",                      description: "Ziel & nächste Schritte klären" },
-  { id: "three_field",         name: "Frieda",        oldName: "Offener Austausch",         description: "Verstehen, öffnen, entscheiden" },
-  { id: "konsent",             name: "Werner",        oldName: "Konsent-Entscheid",         description: "Vorschlag ohne Einwand annehmen" },
-  { id: "systemic_condensing", name: "Hildegard",     oldName: "Systemisches Konsensieren", description: "Geringsten Widerstand finden" },
+  { id: "basic_info",          name: "Ute",      oldName: "Kurzes Update",                 description: "strukturiertes Update ohne Diskussion" },
+  { id: "grow",                name: "Kurt",     oldName: "GROW",                          description: "Ziel strukturiert erarbeiten" },
+  { id: "three_field",         name: "Frieda",   oldName: "Offener Austausch",             description: "offen erkunden und entscheiden" },
+  { id: "konsent",             name: "Werner",   oldName: "Konsent-Entscheid",             description: "Konsent zu einem Vorschlag prüfen" },
+  { id: "systemic_condensing", name: "Sven",     oldName: "Systemisches Konsensieren",     description: "mehrere Optionen per Widerstandsmessung" },
+  { id: "konsultativ",         name: "Karl",     oldName: "Konsultativer Einzelentscheid", description: "eine Person entscheidet nach Konsultation" },
 ]
 
 const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
-  information:  ["basic_info", "question_topic"],
-  beratung:     ["grow", "three_field"],
-  entscheidung: ["konsent", "systemic_condensing"],
+  information:  ["basic_info"],                                  // Ute
+  beratung:     ["grow", "three_field"],                         // Kurt · Frieda
+  entscheidung: ["konsent", "systemic_condensing", "konsultativ"], // Werner · Sven · Karl
   kreativ:      [],
   ankommen:     [],
   checkout:     [],

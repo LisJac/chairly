@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chairly – Meeting-Vorlagen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#f5f3ea;--panel:#fffdf7;--ink:#23271f;--muted:#6b7363;--hair:rgba(35,39,31,.12)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:"Hanken Grotesk",sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+
+  /* Hero */
+  .hero{padding:56px 32px 40px;max-width:960px;margin:0 auto}
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-icon{width:52px;height:52px;border-radius:14px;background:var(--ink);display:flex;align-items:center;justify-content:center}
+  .brand-icon svg{width:28px;height:28px;fill:none;stroke:#f5f3ea;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .brand-name{font-family:"Bricolage Grotesque",sans-serif;font-size:28px;font-weight:700;letter-spacing:-.02em}
+  .brand-sub{font-size:14px;color:var(--muted);margin-top:2px}
+  .hero-desc{max-width:520px;font-size:15px;color:var(--muted);line-height:1.6}
+  .hero-desc b{color:var(--ink);font-weight:600}
+
+  /* Guide strip */
+  .guide{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:40px;max-width:960px;padding:0 32px;margin-left:auto;margin-right:auto}
+  .guide-item{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--hair);border-radius:8px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px}
+  .guide-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:0 auto;padding:0 32px 32px}
+
+  /* Cards */
+  .tcard{background:var(--panel);border:1px solid var(--hair);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:inherit;transition:transform .18s ease,box-shadow .18s ease;cursor:pointer}
+  .tcard:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(35,39,31,.1)}
+  .tc-top{display:flex;align-items:center;gap:14px}
+  .tc-emblem{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .tc-emblem svg{width:32px;height:32px}
+  .tc-name{font-family:"Bricolage Grotesque",sans-serif;font-size:20px;font-weight:600;letter-spacing:-.01em}
+  .tc-tag{font-size:13px;font-weight:500;color:var(--muted)}
+  .tc-desc{font-size:13px;color:var(--muted);line-height:1.55;flex:1}
+  .tc-open{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:9px 16px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;transition:opacity .15s;align-self:flex-start}
+  .tc-open svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .tc-open:hover{opacity:.82}
+
+  /* Color themes per card */
+  .kurt  .tc-emblem{background:#639922}.kurt  .tc-open{background:#EAF3DE;color:#2c4a12}
+  .frieda .tc-emblem{background:#378ADD}.frieda .tc-open{background:#e6f1fb;color:#185FA5}
+  .werner.tc-emblem{background:#1D9E75}.werner.tc-open{background:#e0f4ec;color:#0f4d38}
+  .sven  .tc-emblem{background:#BA7517}.sven  .tc-open{background:#fef8e7;color:#5c3200}
+  .karl  .tc-emblem{background:#db2777}.karl  .tc-open{background:#fdf2f8;color:#9d174d}
+  .ute   .tc-emblem{background:#D85A30}.ute   .tc-open{background:#fff0eb;color:#9a3712}
+
+  /* Divider */
+  .divider{max-width:960px;margin:0 auto 24px;padding:0 32px}
+  .divider hr{border:none;border-top:1px solid var(--hair)}
+
+  /* Shared element */
+  .shared{max-width:960px;margin:0 auto 56px;padding:0 32px}
+  .shared-inner{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--hair);border-radius:16px;padding:16px 20px}
+  .shared-emblem{width:44px;height:44px;border-radius:12px;background:#444441;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .shared-emblem svg{width:26px;height:26px}
+  .shared-text{font-size:13px;color:var(--muted)}
+  .shared-text b{color:var(--ink);font-weight:600;display:block;margin-bottom:2px}
+
+  @media(max-width:840px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}.hero{padding:32px 20px 24px}.grid,.guide,.divider,.shared{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-top">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/><path d="M10 20h4"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Chairly</div>
+        <div class="brand-sub">Meeting-Vorlagen</div>
+      </div>
+    </div>
+  </div>
+  <p class="hero-desc">Sechs Vorlagen für unterschiedliche Meeting-Situationen — <b>alle mit derselben Logik aufgebaut:</b> Leitfrage, Zeitangabe, Eintragsfeld und optionale Vertiefungsfragen. Klicke eine Vorlage an, um sie zu öffnen.</p>
+</div>
+
+<div class="guide">
+  <div class="guide-item"><span class="guide-dot" style="background:#639922"></span> Kurt – Ziel erarbeiten</div>
+  <div class="guide-item"><span class="guide-dot" style="background:#378ADD"></span> Frieda – Erkunden &amp; entscheiden</div>
+  <div class="guide-item"><span class="guide-dot" style="background:#1D9E75"></span> Werner – Konsent prüfen</div>
+  <div class="guide-item"><span class="guide-dot" style="background:#BA7517"></span> Sven – Optionen vergleichen</div>
+  <div class="guide-item"><span class="guide-dot" style="background:#db2777"></span> Karl – Konsultativ entscheiden</div>
+  <div class="guide-item"><span class="guide-dot" style="background:#D85A30"></span> Ute – Kurzes Update</div>
+</div>
+
+<div class="grid">
+
+  <a class="tcard kurt" href="kurt.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="53" r="23"/><circle cx="50" cy="53" r="12.5"/><circle cx="50" cy="53" r="3.5" fill="#fff"/><path d="M74 29 L57 46"/><path d="M64 45 L57 46 L58 53"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Kurt</div>
+        <div class="tc-tag">Ziel &amp; nächste Schritte klären</div>
+      </div>
+    </div>
+    <p class="tc-desc">Für Meetings mit einem klaren Ziel, das strukturiert erarbeitet werden soll. 4 Schritte: Ziel → Ist-Zustand → Ideen → Maßnahmen.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+  <a class="tcard frieda" href="frieda.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><rect x="22" y="24" width="42" height="28" rx="8"/><path d="M33 52 L33 62 L45 52"/><rect x="42" y="44" width="34" height="24" rx="8" fill="#378ADD"/><path d="M64 68 L64 76 L54 68"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Frieda</div>
+        <div class="tc-tag">Verstehen, öffnen, entscheiden</div>
+      </div>
+    </div>
+    <p class="tc-desc">Für offene Themen ohne festes Ziel. 3 Schritte: gemeinsam verstehen → Lösungsraum öffnen → entscheiden.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+  <a class="tcard werner" href="werner.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 52 L31 63 L52 40"/><path d="M44 60 L48 64 L74 34"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Werner</div>
+        <div class="tc-tag">Konsent-Entscheid</div>
+      </div>
+    </div>
+    <p class="tc-desc">Für einen fertigen Vorschlag, der schnell entschieden werden soll. Niemand hat einen schwerwiegenden Einwand → umsetzen.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+  <a class="tcard sven" href="sven.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 64 A26 26 0 0 1 76 64"/><line x1="50" y1="64" x2="64" y2="44"/><circle cx="50" cy="64" r="4.5" fill="#fff"/><line x1="26" y1="64" x2="30" y2="64"/><line x1="70" y1="64" x2="74" y2="64"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Sven</div>
+        <div class="tc-tag">Systemisches Konsensieren</div>
+      </div>
+    </div>
+    <p class="tc-desc">Wenn mehrere Optionen verglichen werden müssen. Interaktive Widerstandsmatrix — niedrigste Summe gewinnt.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+  <a class="tcard karl" href="karl.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="36" r="14"/><path d="M26 74 Q26 54 50 54 Q74 54 74 74"/><rect x="60" y="52" width="22" height="17" rx="5" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="3.5"/><path d="M65 62 L69 66 L77 57"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Karl</div>
+        <div class="tc-tag">Konsultativer Entscheid</div>
+      </div>
+    </div>
+    <p class="tc-desc">Eine Person entscheidet — aber erst nach echtem Einholen. 3 Phasen: Vorbereiten → Konsultieren → Entscheiden.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+  <a class="tcard ute" href="ute.html">
+    <div class="tc-top">
+      <div class="tc-emblem">
+        <svg viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M28 44 L50 36 L50 64 L28 56 Z"/><line x1="37" y1="58" x2="37" y2="69"/><path d="M58 41 Q66 50 58 59"/><path d="M65 35 Q78 50 65 65"/></g></svg>
+      </div>
+      <div>
+        <div class="tc-name">Ute</div>
+        <div class="tc-tag">Kurzes Update</div>
+      </div>
+    </div>
+    <p class="tc-desc">Strukturierter Status-Check ohne Diskussion. Nur Involvierte sprechen. 3 Schritte, Schritt 3 optional.</p>
+    <div class="tc-open">Öffnen <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></div>
+  </a>
+
+</div>
+
+<div class="divider"><hr></div>
+
+<div class="shared">
+  <div class="shared-inner">
+    <div class="shared-emblem">
+      <svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="42" r="18"/><line x1="46" y1="40" x2="46" y2="50"/><line x1="54" y1="40" x2="54" y2="50"/><line x1="43" y1="64" x2="57" y2="64"/><line x1="45" y1="70" x2="55" y2="70"/><line x1="43" y1="64" x2="45" y2="70"/><line x1="57" y1="64" x2="55" y2="70"/></svg>
+    </div>
+    <div class="shared-text">
+      <b>Frage &amp; Thema — gemeinsamer Startpunkt</b>
+      Jede Vorlage beginnt mit der gleichen Einstiegsfrage: Haben alle verstanden, worum es geht? Erst dann startet der Moderator mit Schritt 1.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

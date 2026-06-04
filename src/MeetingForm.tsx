@@ -16,20 +16,20 @@ import TemplateIcon from "./TemplateIcon"
 // `name` = persona name (shown bold), `oldName` = technical term shown in parens
 const TEMPLATES: { id: TemplateId; name: string; oldName?: string; description?: string }[] = [
   { id: "none",                name: "No template" },
-  { id: "basic_info",          name: "Sigrid",        oldName: "Kurzes Update",             description: "Informieren ohne Diskussion" },
-  { id: "question_topic",      name: "Frage & Thema",                                       description: "Gemeinsamer Startpunkt" },
-  { id: "grow",                name: "Kurt",          oldName: "GROW",                      description: "Ziel & nächste Schritte klären" },
-  { id: "three_field",         name: "Frieda",        oldName: "Offener Austausch",         description: "Verstehen, öffnen, entscheiden" },
-  { id: "konsent",             name: "Werner",        oldName: "Konsent-Entscheid",         description: "Vorschlag ohne Einwand annehmen" },
-  { id: "systemic_condensing", name: "Hildegard",     oldName: "Systemisches Konsensieren", description: "Geringsten Widerstand finden" },
+  { id: "basic_info",          name: "Ute",      oldName: "Kurzes Update",                 description: "strukturiertes Update ohne Diskussion" },
+  { id: "grow",                name: "Kurt",     oldName: "GROW",                          description: "Ziel strukturiert erarbeiten" },
+  { id: "three_field",         name: "Frieda",   oldName: "Offener Austausch",             description: "offen erkunden und entscheiden" },
+  { id: "konsent",             name: "Werner",   oldName: "Konsent-Entscheid",             description: "Konsent zu einem Vorschlag prüfen" },
+  { id: "systemic_condensing", name: "Sven",     oldName: "Systemisches Konsensieren",     description: "mehrere Optionen per Widerstandsmessung" },
+  { id: "konsultativ",         name: "Karl",     oldName: "Konsultativer Einzelentscheid", description: "eine Person entscheidet nach Konsultation" },
 ]
 
 // Which templates are valid for which Goal
 const TEMPLATES_BY_GOAL: Record<AgendaType, TemplateId[]> = {
-  information:  ["basic_info", "question_topic"],
-  beratung:     ["grow", "three_field"],          // Input
-  entscheidung: ["konsent", "systemic_condensing"], // Decision
-  kreativ:      [],                                // Ideas (Brainstorm) — empty
+  information:  ["basic_info"],                                  // Ute
+  beratung:     ["grow", "three_field"],                         // Kurt · Frieda
+  entscheidung: ["konsent", "systemic_condensing", "konsultativ"], // Werner · Sven · Karl
+  kreativ:      [],                                              // Ideas — empty
   ankommen:     [],
   checkout:     [],
   brainstorm:   [],
@@ -901,16 +901,30 @@ export default function MeetingForm({
                             )}
                             {t.id === "systemic_condensing" && (
                               <>
-                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Map the system</div>
-                                <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                                  {[1,2,3,4].map(i => (
-                                    <div key={i} className="border border-dashed border-border rounded p-1.5">
-                                      <div className="h-3 bg-[var(--bg-muted)] rounded" />
-                                    </div>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Optionen</div>
+                                {[1,2,3].map(i => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <span className="text-[var(--text-tertiary)] text-[10px] w-4">{i}.</span>
+                                    <div className="flex-1 h-3 bg-[var(--bg-muted)] rounded" />
+                                    <div className="w-8 h-3 bg-[var(--bg-muted)]/60 rounded" />
+                                  </div>
+                                ))}
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Geringster Widerstand</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                              </>
+                            )}
+                            {t.id === "konsultativ" && (
+                              <>
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Entscheider:in</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "50%" }} />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Konsultierte Personen</div>
+                                <div className="flex gap-1">
+                                  {[1,2,3].map(i => (
+                                    <div key={i} className="w-5 h-5 rounded-full bg-[var(--bg-muted)]" />
                                   ))}
                                 </div>
-                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Condense pattern</div>
-                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "70%" }} />
+                                <div className="text-[10px] uppercase tracking-wide text-muted-foreground pt-1">Entscheidung</div>
+                                <div className="h-4 bg-[var(--bg-muted)] rounded" style={{ width: "65%" }} />
                               </>
                             )}
                           </div>

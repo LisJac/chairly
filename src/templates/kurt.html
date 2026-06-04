@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kurt – Ziel und nächste Schritte klären</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-900:#173404; --green-700:#2c4a12; --green-600:#3b6d11; --green-500:#639922;
+    --card:#abd58e; --card-line:rgba(23,52,4,.30); --card-ink:#1c3a06; --card-sub:#2c4a12;
+    --paper:#f5f3ea; --panel:#fffdf7; --ink:#23271f; --muted:#6b7363; --hair:rgba(35,39,31,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:"Hanken Grotesk",sans-serif;background:var(--paper);color:var(--ink);line-height:1.55;padding:40px 24px 64px}
+  .sheet{max-width:1120px;margin:0 auto}
+  header{display:flex;align-items:center;gap:18px;margin-bottom:6px}
+  .emblem{width:62px;height:62px;border-radius:16px;background:var(--green-500);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .emblem svg{width:38px;height:38px}
+  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1.05}
+  h1 .light{font-weight:400;color:var(--muted)}
+  .lede{font-size:15px;color:var(--muted);margin-top:2px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin:18px 0 26px;font-size:13px;color:var(--muted)}
+  .meta span{display:inline-flex;align-items:center;gap:7px}
+  .meta svg{width:15px;height:15px;stroke:var(--green-500);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+  .card{background:var(--card);border-radius:18px;padding:18px 18px 20px;display:flex;flex-direction:column;opacity:0;transform:translateY(10px);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards}
+  .card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.13s}
+  .card:nth-child(3){animation-delay:.21s}.card:nth-child(4){animation-delay:.29s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .ctop{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+  .num{width:24px;height:24px;border-radius:50%;background:var(--green-900);color:#eaf3de;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:"Bricolage Grotesque",sans-serif}
+  .ctitle{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:18px;color:var(--card-ink)}
+  .time{align-self:flex-start;font-size:11px;font-weight:500;color:var(--card-sub);background:rgba(255,255,255,.55);border-radius:99px;padding:3px 10px;margin-bottom:11px}
+  .frage{font-size:13.5px;font-weight:500;color:var(--card-ink);margin-bottom:12px;min-height:38px}
+  .fill{flex:1;min-height:118px;border:1.5px dashed var(--card-line);border-radius:11px;background:rgba(255,255,255,.22);padding:10px 12px;font-family:inherit;font-size:13.5px;color:var(--card-ink);line-height:1.5;outline:none;transition:border-color .2s,background .2s;resize:none;overflow-y:auto}
+  .fill:empty:before{content:attr(data-ph);color:rgba(28,58,6,.45)}
+  .fill:focus{border-style:solid;border-color:var(--green-600);background:rgba(255,255,255,.55)}
+  .more-btn{margin-top:12px;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--green-700);background:rgba(255,255,255,.5);border:none;border-radius:9px;padding:7px 11px;cursor:pointer;transition:background .15s}
+  .more-btn:hover{background:rgba(255,255,255,.8)}
+  .more-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s}
+  .more-btn.open svg{transform:rotate(180deg)}
+  .more-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+  .more-wrap.open{grid-template-rows:1fr}
+  .more-inner{overflow:hidden}
+  .more-list{margin-top:11px;padding-top:11px;border-top:1px solid var(--card-line);list-style:none}
+  .more-list li{font-size:12.5px;color:var(--card-sub);padding:4px 0 4px 16px;position:relative;line-height:1.45}
+  .more-list li:before{content:"?";position:absolute;left:0;font-weight:600;color:var(--green-600)}
+  footer{margin-top:26px;display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--muted);background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:14px 16px}
+  footer svg{width:18px;height:18px;flex:0 0 auto;stroke:var(--green-500);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+  .tools{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  .tbtn{font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);background:var(--panel);border:1px solid var(--hair);border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,background .15s}
+  .tbtn:hover{border-color:var(--green-500);background:#fff}
+  .tbtn svg{width:15px;height:15px;stroke:var(--green-600);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  @media(max-width:920px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}h1{font-size:27px}}
+  @media print{
+    body{background:#fff;padding:0}.tools,.more-btn{display:none}
+    .card{break-inside:avoid;opacity:1;transform:none;animation:none}
+    .more-wrap{grid-template-rows:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header>
+    <div class="emblem">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="53" r="23"/><circle cx="50" cy="53" r="12.5"/>
+          <circle cx="50" cy="53" r="3.5" fill="#fff"/>
+          <path d="M74 29 L57 46"/><path d="M64 45 L57 46 L58 53"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <h1>Kurt <span class="light">– Ziel und nächste Schritte klären</span></h1>
+      <p class="lede">In 4 Schritten vom Ziel zur konkreten Maßnahme.</p>
+    </div>
+  </header>
+
+  <div class="meta">
+    <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ca. 30–45 Min. gesamt</span>
+    <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4a3 3 0 0 1 0 6"/></svg> Moderator führt, Team füllt aus</span>
+    <span><svg viewBox="0 0 24 24"><path d="M4 12h15"/><path d="M14 7l5 5-5 5"/></svg> von links nach rechts</span>
+  </div>
+
+  <div class="grid" id="grid">
+
+    <div class="card">
+      <div class="ctop"><div class="num">1</div><div class="ctitle">Ziel</div></div>
+      <div class="time">ca. 5–10 Min.</div>
+      <p class="frage">Was wollt Ihr ganz spezifisch erreichen?</p>
+      <div class="fill" contenteditable="true" data-ph="hier eintragen …"></div>
+      <button class="more-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span>Mehr Fragen</span>
+      </button>
+      <div class="more-wrap"><div class="more-inner"><ul class="more-list">
+        <li>Woran merkt Ihr, dass es erreicht ist?</li>
+        <li>Bis wann soll es erreicht sein?</li>
+        <li>Ist das Ziel realistisch?</li>
+      </ul></div></div>
+    </div>
+
+    <div class="card">
+      <div class="ctop"><div class="num">2</div><div class="ctitle">Ist-Zustand</div></div>
+      <div class="time">ca. 10 Min.</div>
+      <p class="frage">Wo stehen wir gerade?</p>
+      <div class="fill" contenteditable="true" data-ph="hier eintragen …"></div>
+      <button class="more-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span>Mehr Fragen</span>
+      </button>
+      <div class="more-wrap"><div class="more-inner"><ul class="more-list">
+        <li>Wer ist sonst noch betroffen?</li>
+        <li>Welche inneren Hindernisse gibt es?</li>
+        <li>Welche äußeren Hindernisse gibt es?</li>
+      </ul></div></div>
+    </div>
+
+    <div class="card">
+      <div class="ctop"><div class="num">3</div><div class="ctitle">Ideen</div></div>
+      <div class="time">ca. 10 Min.</div>
+      <p class="frage">Welche Lösungsansätze gibt es?</p>
+      <div class="fill" contenteditable="true" data-ph="hier eintragen …"></div>
+      <button class="more-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span>Mehr Fragen</span>
+      </button>
+      <div class="more-wrap"><div class="more-inner"><ul class="more-list">
+        <li>Was, wenn Geld keine Rolle spielt?</li>
+        <li>Was, wenn Ihr die volle Kontrolle hättet?</li>
+        <li>Was, wenn Ihr ganz neu anfangen könntet?</li>
+      </ul></div></div>
+    </div>
+
+    <div class="card">
+      <div class="ctop"><div class="num">4</div><div class="ctitle">Nächste Schritte</div></div>
+      <div class="time">ca. 10 Min.</div>
+      <p class="frage">Was entscheiden wir heute? Wer macht was bis wann?</p>
+      <div class="fill" contenteditable="true" data-ph="hier eintragen …"></div>
+      <button class="more-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span>Mehr Fragen</span>
+      </button>
+      <div class="more-wrap"><div class="more-inner"><ul class="more-list">
+        <li>Wie hoch ist Euer Engagement (0–10)?</li>
+        <li>Welche Prioritäten binden gerade Energie?</li>
+        <li>Welche offenen Punkte könnten stören?</li>
+      </ul></div></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/><path d="M10 20h4"/></svg>
+    <span>Standardmäßig ist nur die Leitfrage sichtbar. Bleibt das Team hängen, klappt der Moderator „Mehr Fragen“ auf — genau das Verhalten der späteren Live-Coaching-Schicht, nur manuell ausgelöst.</span>
+  </footer>
+
+  <div class="tools">
+    <button class="tbtn" id="clear" type="button">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg> Felder leeren
+    </button>
+    <button class="tbtn" id="print" type="button">
+      <svg viewBox="0 0 24 24"><path d="M6 9V4h12v5M6 18H4v-6h16v6h-2M8 14h8v6H8z"/></svg> Drucken / als PDF speichern
+    </button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".more-btn").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var wrap=btn.nextElementSibling, label=btn.querySelector("span");
+      var open=wrap.classList.toggle("open");
+      btn.classList.toggle("open",open);
+      label.textContent=open?"Weniger Fragen":"Mehr Fragen";
+    });
+  });
+  document.getElementById("clear").addEventListener("click",function(){
+    if(confirm("Alle Eintragsfelder leeren?")){
+      document.querySelectorAll(".fill").forEach(function(f){f.textContent="";});
+    }
+  });
+  document.getElementById("print").addEventListener("click",function(){window.print();});
+</script>
+</body>
+</html>

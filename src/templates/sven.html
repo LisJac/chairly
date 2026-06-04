@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sven – Systemisches Konsensieren</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --a9:#3a1e00; --a7:#5c3200; --a6:#BA7517; --a5:#d48a2a; --a3:#fde68a; --a1:#fef8e7;
+    --paper:#f5f3ea; --panel:#fffdf7; --ink:#23271f; --muted:#6b7363; --hair:rgba(35,39,31,.12);
+    --kurt:#639922; --frieda:#378ADD; --werner:#1D9E75;
+    --win-bg:#BA7517; --win-text:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:"Hanken Grotesk",sans-serif;background:var(--paper);color:var(--ink);line-height:1.55;padding:40px 24px 64px}
+  .sheet{max-width:1160px;margin:0 auto}
+
+  /* Header */
+  header{display:flex;align-items:center;gap:18px;margin-bottom:6px}
+  .emblem{width:62px;height:62px;border-radius:16px;background:var(--a6);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .emblem svg{width:38px;height:38px}
+  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1.05}
+  h1 .light{font-weight:400;color:var(--muted)}
+  .lede{font-size:15px;color:var(--muted);margin-top:2px}
+  .lede b{color:var(--a7);font-weight:600}
+
+  /* Wann */
+  .when{display:flex;align-items:flex-start;gap:10px;margin:18px 0 14px;font-size:13px;color:var(--a7);background:#fef8e7;border:1px solid #f5d98a;border-radius:12px;padding:11px 14px}
+  .when b{font-weight:600}
+  .when svg{width:17px;height:17px;flex:0 0 auto;stroke:var(--a6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 1px -1px 0}
+  .dot-k{background:var(--kurt)}.dot-f{background:var(--frieda)}.dot-w{background:var(--werner)}
+
+  /* Meta */
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0 0 24px;font-size:13px;color:var(--muted)}
+  .meta span{display:inline-flex;align-items:center;gap:7px}
+  .meta svg{width:15px;height:15px;stroke:var(--a6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* Steps */
+  .steps{display:flex;gap:0;margin-bottom:22px;background:var(--panel);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+  .step{flex:1;display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-right:1px solid var(--hair)}
+  .step:last-child{border-right:none}
+  .snum{width:24px;height:24px;border-radius:50%;background:var(--a6);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:"Bricolage Grotesque",sans-serif;margin-top:1px}
+  .stxt{font-size:13px;color:var(--ink);line-height:1.4}
+  .stxt b{font-weight:600;display:block;margin-bottom:2px}
+
+  /* Question */
+  .qwrap{margin-bottom:20px}
+  .qlabel{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .qinput{width:100%;font-family:inherit;font-size:16px;font-weight:500;color:var(--ink);border:1.5px solid var(--hair);border-radius:11px;background:var(--panel);padding:12px 16px;outline:none;transition:border-color .2s}
+  .qinput:focus{border-color:var(--a6)}
+  .qinput::placeholder{color:rgba(35,39,31,.35)}
+
+  /* Legend */
+  .legend{display:flex;align-items:center;gap:14px;margin-bottom:16px;font-size:12.5px;color:var(--muted)}
+  .legbar{flex:1;max-width:200px;height:8px;border-radius:4px;background:linear-gradient(to right,#4ade80,#facc15,#f87171)}
+  .legend b{color:var(--ink)}
+
+  /* Table wrapper */
+  .tw{overflow-x:auto;margin-bottom:16px;border-radius:14px;border:1px solid var(--hair);background:#fff}
+  table{border-collapse:collapse;width:100%;min-width:520px}
+  th,td{border:1px solid #e8e4dc;padding:0}
+
+  /* Corner */
+  .th-corner{background:var(--a1);padding:10px 14px;font-size:12px;font-weight:600;color:var(--a7);text-align:left;white-space:nowrap;min-width:130px}
+
+  /* Proposal headers */
+  .th-prop{background:var(--a1);padding:8px 10px;text-align:center;min-width:110px;position:relative}
+  .th-prop.winner-col{background:var(--a3)}
+  .th-null{background:#f3f0e8;padding:8px 10px;text-align:center;min-width:110px}
+  .prop-name-inp{width:100%;font-family:inherit;font-size:13px;font-weight:600;color:var(--a9);background:transparent;border:none;outline:none;text-align:center;padding:2px 4px}
+  .prop-name-inp:focus{background:rgba(255,255,255,.7);border-radius:6px}
+  .null-label{font-size:13px;font-weight:600;color:#5a5248}
+  .null-sub{font-size:11px;color:#8a8278;display:block;margin-top:1px}
+  .del-btn{display:block;margin:4px auto 0;font-size:10px;background:rgba(180,100,50,.12);border:none;border-radius:4px;padding:2px 7px;cursor:pointer;color:#8a4a20;font-family:inherit;transition:background .15s}
+  .del-btn:hover{background:rgba(180,100,50,.28)}
+
+  /* Participant rows */
+  .td-part{background:#fafaf8;padding:8px 12px;white-space:nowrap}
+  .part-name-inp{font-family:inherit;font-size:13px;color:var(--ink);background:transparent;border:none;outline:none;width:90px}
+  .part-name-inp:focus{background:rgba(255,255,255,.8);border-radius:5px;padding:1px 4px}
+  .td-score{text-align:center;padding:4px 6px}
+  .td-score.winner-col{background:#fffbf0}
+  .score-inp{width:54px;text-align:center;font-family:inherit;font-size:14px;font-weight:500;color:var(--a9);border:1.5px solid #e0dbd0;border-radius:8px;padding:6px 4px;outline:none;transition:border-color .15s,background .15s;-moz-appearance:textfield;background:#fff}
+  .score-inp:focus{border-color:var(--a6);background:#fffbf0}
+  .score-inp::-webkit-outer-spin-button,.score-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+  .score-inp.high{background:#fee2e2;border-color:#fca5a5}
+  .score-inp.low{background:#dcfce7;border-color:#86efac}
+  .del-part-btn{font-size:10px;background:none;border:none;cursor:pointer;color:#aaa;padding:0 0 0 6px;line-height:1}
+  .del-part-btn:hover{color:#c62828}
+
+  /* Sum row */
+  .td-sum-label{background:var(--a1);padding:10px 14px;font-size:12.5px;font-weight:600;color:var(--a7)}
+  .td-sum{text-align:center;padding:10px 6px;font-size:15px;font-weight:600;color:var(--a9);background:var(--a1)}
+  .td-sum.winner-col{background:var(--win-bg);color:var(--win-text);border-radius:0}
+  .td-sum-null{text-align:center;padding:10px 6px;font-size:15px;font-weight:600;color:#5a5248;background:#f3f0e8}
+
+  /* Buttons */
+  .add-row{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+  .add-btn{font-family:inherit;font-size:13px;font-weight:500;color:var(--a7);background:var(--panel);border:1.5px dashed #d4a84b;border-radius:10px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,background .15s}
+  .add-btn:hover{border-style:solid;background:#fef8e7}
+  .add-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+  /* Winner display */
+  .winner-box{display:none;align-items:center;gap:14px;padding:14px 18px;background:var(--panel);border:1.5px solid var(--a3);border-radius:14px;margin-bottom:16px}
+  .winner-box.visible{display:flex}
+  .winner-box.no-win{border-color:#fca5a5;background:#fff5f5}
+  .winner-icon{font-size:28px;flex:0 0 auto}
+  .winner-text{font-size:14px;color:var(--ink)}
+  .winner-text b{font-size:16px;color:var(--a7);font-weight:600;display:block}
+  .winner-box.no-win .winner-text b{color:#c62828}
+
+  /* Footer */
+  footer{margin-top:10px;display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--muted);background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:14px 16px}
+  footer svg{width:18px;height:18px;flex:0 0 auto;stroke:var(--a6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+  .tools{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  .tbtn{font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);background:var(--panel);border:1px solid var(--hair);border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,background .15s}
+  .tbtn:hover{border-color:var(--a6);background:#fff}
+  .tbtn svg{width:15px;height:15px;stroke:var(--a6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  @media(max-width:700px){h1{font-size:24px}.steps{flex-direction:column}.step{border-right:none;border-bottom:1px solid var(--hair)}.step:last-child{border-bottom:none}}
+  @media print{body{background:#fff;padding:0}.add-row,.tools,.del-btn,.del-part-btn{display:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="emblem">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 64 A26 26 0 0 1 76 64"/>
+          <line x1="50" y1="64" x2="64" y2="44"/>
+          <circle cx="50" cy="64" r="4.5" fill="#fff"/>
+          <line x1="26" y1="64" x2="30" y2="64"/><line x1="70" y1="64" x2="74" y2="64"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <h1>Sven <span class="light">– Systemisches Konsensieren</span></h1>
+      <p class="lede"><b>Nicht die meiste Zustimmung, sondern der geringste Widerstand gewinnt.</b> Jede Person bewertet jeden Vorschlag — 0 bedeutet „ich kann damit leben", 10 bedeutet „starker Widerstand".</p>
+    </div>
+  </header>
+
+  <div class="when">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+    <span><b>Wann Sven?</b> Wenn ihr <b>mehrere Optionen</b> vergleichen wollt und eine Entscheidung braucht, die alle mittragen. Habt ihr nur einen Vorschlag zum Prüfen, nutzt <span class="dot dot-w"></span><b>Werner</b>. Für offene Diskussion: <span class="dot dot-f"></span><b>Frieda</b>. Für strukturiertes Problemlösen: <span class="dot dot-k"></span><b>Kurt</b>.</span>
+  </div>
+
+  <div class="meta">
+    <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ca. 20–40 Min. gesamt</span>
+    <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4a3 3 0 0 1 0 6"/></svg> Alle bewerten, Moderator führt</span>
+    <span><svg viewBox="0 0 24 24"><path d="M4 12h15"/><path d="M14 7l5 5-5 5"/></svg> Schritt für Schritt von links nach rechts</span>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="stxt"><b>Frage & Vorschläge</b>Entscheidungsfrage formulieren. Alle Vorschläge sammeln — inkl. „Null-Messung" (nichts tun / Status Quo).</div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="stxt"><b>Widerstand messen</b>Jede Person bewertet jeden Vorschlag: 0 = kein Widerstand · 10 = maximaler Widerstand. Unabhängig, ohne Diskussion.</div>
+    </div>
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="stxt"><b>Gesamtwiderstand vergleichen</b>Spalten summieren. Der Vorschlag mit der niedrigsten Summe — und niedriger als die Null-Messung — gewinnt.</div>
+    </div>
+  </div>
+
+  <div class="qwrap">
+    <div class="qlabel">Entscheidungsfrage</div>
+    <input class="qinput" id="question" type="text" placeholder="Welche Frage wollen wir heute entscheiden? z. B. „Wie feiern wir den Projektabschluss?"">
+  </div>
+
+  <div class="legend">
+    <span><b>0</b> = kein Widerstand</span>
+    <div class="legbar"></div>
+    <span><b>10</b> = maximaler Widerstand</span>
+    <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">Grün = niedrig · Rot = hoch</span>
+  </div>
+
+  <div class="tw"><div id="table-wrap"></div></div>
+
+  <div class="add-row">
+    <button class="add-btn" id="add-prop">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Vorschlag hinzufügen
+    </button>
+    <button class="add-btn" id="add-part">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Person hinzufügen
+    </button>
+  </div>
+
+  <div class="winner-box" id="winner-box">
+    <div class="winner-icon" id="winner-icon">🏆</div>
+    <div class="winner-text"><b id="winner-name"></b><span id="winner-desc"></span></div>
+  </div>
+
+  <footer>
+    <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/><path d="M10 20h4"/></svg>
+    <span>Die Null-Messung (Status Quo) ist immer dabei — sie zeigt, ob überhaupt ein Vorschlag besser ist als das Nichtstun. Hohe Widerstandswerte (10) sind kein Veto, aber ein Signal: hier steckt eine unbefriedigte Lösung.</span>
+  </footer>
+
+  <div class="tools">
+    <button class="tbtn" id="btn-clear">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg> Werte leeren
+    </button>
+    <button class="tbtn" id="btn-print">
+      <svg viewBox="0 0 24 24"><path d="M6 9V4h12v5M6 18H4v-6h16v6h-2M8 14h8v6H8z"/></svg> Drucken / als PDF
+    </button>
+  </div>
+
+</div>
+<script>
+(function(){
+  var ctr = 0;
+  function uid(){ return 'id'+(++ctr); }
+
+  var NULL_ID = 'null';
+  var state = {
+    proposals: [
+      {id:uid(), name:'Vorschlag 1'},
+      {id:uid(), name:'Vorschlag 2'},
+      {id:uid(), name:'Vorschlag 3'}
+    ],
+    participants: [
+      {id:uid(), name:'Person 1'},
+      {id:uid(), name:'Person 2'},
+      {id:uid(), name:'Person 3'}
+    ],
+    scores: {}
+  };
+
+  function scoreKey(mid, pid){ return mid+'|'+pid; }
+
+  function getScore(mid, pid){
+    var v = state.scores[scoreKey(mid,pid)];
+    return (v === undefined || v === '') ? null : Number(v);
+  }
+
+  function setScore(mid, pid, val){
+    state.scores[scoreKey(mid,pid)] = val;
+  }
+
+  function render(){
+    var html = '<table><thead><tr>';
+    html += '<th class="th-corner">Widerstand&nbsp;0–10</th>';
+    state.proposals.forEach(function(p){
+      html += '<th class="th-prop" data-pid="'+p.id+'">';
+      html += '<input class="prop-name-inp" data-pid="'+p.id+'" value="'+escHtml(p.name)+'">';
+      if(state.proposals.length > 1){
+        html += '<button class="del-btn" data-delprop="'+p.id+'">entfernen</button>';
+      }
+      html += '</th>';
+    });
+    html += '<th class="th-null"><span class="null-label">Null-Messung</span><span class="null-sub">Status Quo</span></th>';
+    html += '</tr></thead><tbody>';
+
+    state.participants.forEach(function(m){
+      html += '<tr data-mid="'+m.id+'">';
+      html += '<td class="td-part"><input class="part-name-inp" data-mid="'+m.id+'" value="'+escHtml(m.name)+'">';
+      if(state.participants.length > 1){
+        html += '<button class="del-part-btn" data-delpart="'+m.id+'" title="Entfernen">✕</button>';
+      }
+      html += '</td>';
+      state.proposals.forEach(function(p){
+        var v = getScore(m.id, p.id);
+        html += '<td class="td-score" data-pid="'+p.id+'">';
+        html += '<input type="number" class="score-inp" min="0" max="10" data-mid="'+m.id+'" data-pid="'+p.id+'" value="'+(v===null?'':v)+'" placeholder="–">';
+        html += '</td>';
+      });
+      var nv = getScore(m.id, NULL_ID);
+      html += '<td class="td-score" data-pid="'+NULL_ID+'">';
+      html += '<input type="number" class="score-inp" min="0" max="10" data-mid="'+m.id+'" data-pid="'+NULL_ID+'" value="'+(nv===null?'':nv)+'" placeholder="–">';
+      html += '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody><tfoot><tr>';
+    html += '<td class="td-sum-label">Gesamt­widerstand</td>';
+    state.proposals.forEach(function(p){
+      html += '<td class="td-sum" data-sumpid="'+p.id+'">—</td>';
+    });
+    html += '<td class="td-sum-null" data-sumpid="'+NULL_ID+'">—</td>';
+    html += '</tr></tfoot></table>';
+
+    document.getElementById('table-wrap').innerHTML = html;
+    wireEvents();
+    recalc();
+  }
+
+  function wireEvents(){
+    var wrap = document.getElementById('table-wrap');
+
+    wrap.querySelectorAll('.score-inp').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var v = inp.value.trim();
+        if(v !== ''){
+          var n = Math.min(10, Math.max(0, parseInt(v,10)));
+          if(isNaN(n)) n = '';
+          else { inp.value = n; v = String(n); }
+        }
+        setScore(inp.dataset.mid, inp.dataset.pid, v);
+        colorCell(inp);
+        recalc();
+      });
+      colorCell(inp);
+    });
+
+    wrap.querySelectorAll('.prop-name-inp').forEach(function(inp){
+      inp.addEventListener('blur', function(){
+        var pid = inp.dataset.pid;
+        state.proposals.forEach(function(p){ if(p.id===pid) p.name = inp.value; });
+      });
+    });
+
+    wrap.querySelectorAll('.part-name-inp').forEach(function(inp){
+      inp.addEventListener('blur', function(){
+        var mid = inp.dataset.mid;
+        state.participants.forEach(function(m){ if(m.id===mid) m.name = inp.value; });
+      });
+    });
+
+    wrap.querySelectorAll('[data-delprop]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var pid = btn.dataset.delprop;
+        state.proposals = state.proposals.filter(function(p){ return p.id !== pid; });
+        render();
+      });
+    });
+
+    wrap.querySelectorAll('[data-delpart]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var mid = btn.dataset.delpart;
+        state.participants = state.participants.filter(function(m){ return m.id !== mid; });
+        render();
+      });
+    });
+  }
+
+  function colorCell(inp){
+    var v = parseInt(inp.value, 10);
+    inp.classList.remove('high','low');
+    if(!isNaN(v)){
+      if(v <= 3) inp.classList.add('low');
+      else if(v >= 8) inp.classList.add('high');
+    }
+  }
+
+  function recalc(){
+    var allPids = state.proposals.map(function(p){ return p.id; }).concat([NULL_ID]);
+    var sums = {};
+    var allFilled = true;
+
+    allPids.forEach(function(pid){
+      var total = 0, count = 0;
+      state.participants.forEach(function(m){
+        var v = getScore(m.id, pid);
+        if(v !== null){ total += v; count++; } else { allFilled = false; }
+      });
+      sums[pid] = count > 0 ? total : null;
+    });
+
+    // Update sum cells
+    document.querySelectorAll('[data-sumpid]').forEach(function(cell){
+      var pid = cell.dataset.sumpid;
+      var s = sums[pid];
+      cell.textContent = (s !== null) ? String(s) : '—';
+    });
+
+    // Determine winner (among proposals only, must beat null)
+    var nullSum = sums[NULL_ID];
+    var winPid = null, winSum = Infinity;
+    state.proposals.forEach(function(p){
+      var s = sums[p.id];
+      if(s !== null && s < winSum){ winSum = s; winPid = p.id; }
+    });
+
+    // Highlight winner column
+    document.querySelectorAll('.th-prop,.td-score,.td-sum').forEach(function(el){
+      el.classList.remove('winner-col');
+    });
+    if(winPid){
+      document.querySelectorAll('[data-pid="'+winPid+'"]').forEach(function(el){
+        el.classList.add('winner-col');
+      });
+      document.querySelectorAll('[data-sumpid="'+winPid+'"]').forEach(function(el){
+        el.classList.add('winner-col');
+      });
+    }
+
+    // Winner box
+    var box = document.getElementById('winner-box');
+    var nameEl = document.getElementById('winner-name');
+    var descEl = document.getElementById('winner-desc');
+    var iconEl = document.getElementById('winner-icon');
+
+    var hasSums = state.proposals.some(function(p){ return sums[p.id] !== null; });
+    if(!hasSums){ box.className='winner-box'; return; }
+
+    box.classList.add('visible');
+
+    if(winPid && (nullSum === null || winSum < nullSum)){
+      var winName = '';
+      state.proposals.forEach(function(p){ if(p.id===winPid) winName=p.name; });
+      box.className='winner-box visible';
+      iconEl.textContent='🏆';
+      nameEl.textContent = winName + ' — Gesamtwiderstand: ' + winSum;
+      descEl.textContent = nullSum !== null
+        ? 'Dieser Vorschlag überzeugt am meisten — weniger Widerstand als der Status Quo (' + nullSum + ').'
+        : 'Dieser Vorschlag hat den geringsten Gesamtwiderstand.';
+    } else if(winPid && nullSum !== null && winSum >= nullSum){
+      box.className='winner-box visible no-win';
+      iconEl.textContent='⚠️';
+      nameEl.textContent = 'Kein Vorschlag schlägt den Status Quo';
+      descEl.textContent = 'Die Null-Messung hat den geringsten Widerstand (' + nullSum + '). Entweder neue Vorschläge entwickeln oder Einwände besprechen.';
+    }
+  }
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.getElementById('add-prop').addEventListener('click', function(){
+    if(state.proposals.length >= 7){ alert('Maximal 7 Vorschläge'); return; }
+    state.proposals.push({id:uid(), name:'Vorschlag '+(state.proposals.length+1)});
+    render();
+  });
+
+  document.getElementById('add-part').addEventListener('click', function(){
+    if(state.participants.length >= 12){ alert('Maximal 12 Personen'); return; }
+    state.participants.push({id:uid(), name:'Person '+(state.participants.length+1)});
+    render();
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', function(){
+    if(confirm('Alle Widerstandswerte leeren?')){ state.scores={}; render(); }
+  });
+
+  document.getElementById('btn-print').addEventListener('click', function(){ window.print(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

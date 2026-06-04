@@ -4,14 +4,14 @@ export type AgendaType =
 
 export type TemplateId =
   | "none"
-  | "basic_info"            // Kurzes Update — for Information goal
-  | "question_topic"        // Frage & Thema — for Information goal
+  | "basic_info"            // Ute  — Kurzes Update for Information goal
   | "grow"                  // Kurt — for Input goal
-  | "three_field"           // Offener Austausch — for Input goal
-  | "konsent"               // Konsent-Entscheid — for Decision goal
-  | "systemic_condensing"   // Systemisches Konsensieren — for Decision goal
+  | "three_field"           // Frieda — for Input goal
+  | "konsent"               // Werner — Konsent-Entscheid for Decision
+  | "systemic_condensing"   // Sven — Systemisches Konsensieren for Decision
+  | "konsultativ"           // Karl — Konsultativer Einzelentscheid for Decision
   // legacy / live capture templates (kept for backward compat)
-  | "decision" | "actions" | "brainstorm" | "status" | "notes"
+  | "question_topic" | "decision" | "actions" | "brainstorm" | "status" | "notes"
 
 export interface AgendaItem {
   id: number

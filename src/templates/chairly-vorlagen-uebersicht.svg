@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="390" viewBox="0 0 980 390">
+  <style>
+    .name { font-family: -apple-system,"Segoe UI",Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; fill:#2c2c2a; }
+    .tag  { font-family: -apple-system,"Segoe UI",Helvetica,Arial,sans-serif; font-size:12px; font-weight:400; fill:#5f5e5a; }
+    .ico  { fill:none; stroke:#ffffff; stroke-width:4.5; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+
+  <!-- Row 1: Kurt, Frieda, Werner, Sven -->
+  <!-- Kurt -->
+  <g transform="translate(71,30) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#639922"/>
+    <g class="ico"><circle cx="50" cy="53" r="23"/><circle cx="50" cy="53" r="12.5"/><circle cx="50" cy="53" r="3.5" fill="#fff"/><path d="M74 29 L57 46"/><path d="M64 45 L57 46 L58 53"/></g>
+  </g>
+  <text class="name" x="113" y="142" text-anchor="middle">Kurt</text>
+  <text class="tag" x="113" y="160" text-anchor="middle">Ziel &amp; nächste Schritte</text>
+
+  <!-- Frieda -->
+  <g transform="translate(316,30) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#378ADD"/>
+    <g class="ico"><rect x="22" y="24" width="42" height="28" rx="8"/><path d="M33 52 L33 62 L45 52"/><rect x="42" y="44" width="34" height="24" rx="8" fill="#378ADD"/><path d="M64 68 L64 76 L54 68"/></g>
+  </g>
+  <text class="name" x="358" y="142" text-anchor="middle">Frieda</text>
+  <text class="tag" x="358" y="160" text-anchor="middle">Verstehen, öffnen, entscheiden</text>
+
+  <!-- Werner -->
+  <g transform="translate(561,30) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#1D9E75"/>
+    <g class="ico"><path d="M20 52 L31 63 L52 40"/><path d="M44 60 L48 64 L74 34"/></g>
+  </g>
+  <text class="name" x="603" y="142" text-anchor="middle">Werner</text>
+  <text class="tag" x="603" y="160" text-anchor="middle">Konsent-Entscheid</text>
+
+  <!-- Sven -->
+  <g transform="translate(806,30) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#BA7517"/>
+    <g class="ico"><path d="M24 64 A26 26 0 0 1 76 64"/><line x1="50" y1="64" x2="64" y2="44"/><circle cx="50" cy="64" r="4.5" fill="#fff"/><line x1="26" y1="64" x2="30" y2="64"/><line x1="70" y1="64" x2="74" y2="64"/></g>
+  </g>
+  <text class="name" x="848" y="142" text-anchor="middle">Sven</text>
+  <text class="tag" x="848" y="160" text-anchor="middle">Systemisches Konsensieren</text>
+
+  <!-- Row 2: Karl, Ute, Frage & Thema -->
+  <!-- Karl -->
+  <g transform="translate(193,210) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#db2777"/>
+    <g class="ico"><circle cx="50" cy="36" r="14"/><path d="M26 74 Q26 54 50 54 Q74 54 74 74"/><rect x="60" y="52" width="22" height="17" rx="5" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="3.5"/><path d="M65 62 L69 66 L77 57"/></g>
+  </g>
+  <text class="name" x="235" y="322" text-anchor="middle">Karl</text>
+  <text class="tag" x="235" y="340" text-anchor="middle">Konsultativer Entscheid</text>
+
+  <!-- Ute -->
+  <g transform="translate(448,210) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#D85A30"/>
+    <g class="ico"><path d="M28 44 L50 36 L50 64 L28 56 Z"/><line x1="37" y1="58" x2="37" y2="69"/><path d="M58 41 Q66 50 58 59"/><path d="M65 35 Q78 50 65 65"/></g>
+  </g>
+  <text class="name" x="490" y="322" text-anchor="middle">Ute</text>
+  <text class="tag" x="490" y="340" text-anchor="middle">Kurzes Update</text>
+
+  <!-- Frage & Thema -->
+  <g transform="translate(703,210) scale(0.84)">
+    <rect width="100" height="100" rx="22" fill="#444441"/>
+    <g class="ico"><circle cx="50" cy="42" r="18"/><line x1="46" y1="40" x2="46" y2="50"/><line x1="54" y1="40" x2="54" y2="50"/><line x1="43" y1="64" x2="57" y2="64"/><line x1="45" y1="70" x2="55" y2="70"/><line x1="43" y1="64" x2="45" y2="70"/><line x1="57" y1="64" x2="55" y2="70"/></g>
+  </g>
+  <text class="name" x="745" y="322" text-anchor="middle">Frage &amp; Thema</text>
+  <text class="tag" x="745" y="340" text-anchor="middle">Gemeinsamer Startpunkt</text>
+</svg>

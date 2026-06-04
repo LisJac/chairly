@@ -78,8 +78,21 @@ export default function TemplateIcon({ id, size = 32 }: { id: TemplateId; size?:
           </g>
         </svg>
       )
+    case "konsultativ":
+      // Karl — person with consultation checkmark (pink/magenta)
+      return (
+        <svg {...common}>
+          <rect width="100" height="100" rx="22" fill="#db2777" />
+          <g fill="none" stroke="#fff" strokeWidth={stroke * 1.4} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="50" cy="36" r="14" />
+            <path d="M26 74 Q26 54 50 54 Q74 54 74 74" />
+            <rect x="60" y="52" width="22" height="17" rx="5" fill="rgba(255,255,255,.25)" stroke="#fff" strokeWidth={stroke * 1.1} />
+            <path d="M65 62 L69 66 L77 57" />
+          </g>
+        </svg>
+      )
     case "question_topic":
-      // Frage & Thema — robot (dark)
+      // Frage & Thema — robot (dark) — legacy, kept for backward compat
       return (
         <svg {...common}>
           <rect width="100" height="100" rx="22" fill="#444441" />
